@@ -54,3 +54,53 @@ class TestWriteCsv:
         count = write_csv([], out)
         assert count == 0
         assert out.exists()
+
+    def test_flattens_nested_source_object(self, tmp_path: Path):
+        rows = [
+            {
+                "ID": "TC-001",
+                "Title": "Login",
+                "source": {
+                    "document": "PRD v2",
+                    "section": "Auth Flow",
+                    "quote": "User must authenticate",
+                    "derivation": "positive case",
+                },
+            },
+        ]
+        out = tmp_path / "out.csv"
+        write_csv(rows, out, extra_columns=True)
+        with out.open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+        assert row["source.document"] == "PRD v2"
+        assert row["source.section"] == "Auth Flow"
+        assert row["source.quote"] == "User must authenticate"
+        assert row["source.derivation"] == "positive case"
+        assert row["ID"] == "TC-001"
+
+    def test_extra_columns_dropped_by_default(self, tmp_path: Path):
+        rows = [
+            {
+                "ID": "TC-001",
+                "Title": "Login",
+                "source": {"document": "PRD"},
+            },
+        ]
+        out = tmp_path / "out.csv"
+        write_csv(rows, out)
+        with out.open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+        assert "source.document" not in row
+
+    def test_extra_scalar_columns_preserved(self, tmp_path: Path):
+        rows = [
+            {"ID": "TC-001", "Title": "Login", "custom_field": "extra value"},
+        ]
+        out = tmp_path / "out.csv"
+        write_csv(rows, out, extra_columns=True)
+        with out.open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+        assert row["custom_field"] == "extra value"

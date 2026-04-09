@@ -39,8 +39,9 @@ _STEPS_GUIDANCE_BDD = """\
   • If a verification is about data, say what the DATA should be — not what the SCREEN shows."""
 
 
-def _build_output_contract(fmt: str = "steps") -> str:
+def _build_output_contract(fmt: str = "steps", trace: bool = False) -> str:
     steps_guidance = _STEPS_GUIDANCE_BDD if fmt == "bdd" else _STEPS_GUIDANCE_DEFAULT
+    trace_guidance = _TRACE_GUIDANCE_TEXT if trace else ""
     return f"""Return ONLY a JSON object (no prose, no markdown fences) with EXACTLY these keys:
 - "suggested_filename": a short, descriptive, kebab-case filename (no extension, no path,
   max 60 chars) reflecting the feature under test. Examples: "login-social-auth",
@@ -56,7 +57,17 @@ Field guidance for each test case:
 {steps_guidance}
 - Expected Result: the observable outcome.
 - Priority: one of P0, P1, P2, P3.
-- Type: one of Functional, Negative, Edge, UI, Integration, Performance, Security, Accessibility."""
+- Type: one of Functional, Negative, Edge, UI, Integration, Performance, Security, Accessibility.
+{trace_guidance}"""
+
+
+_TRACE_GUIDANCE_TEXT = """
+IMPORTANT — Source traceability (required):
+Each test case MUST also include a "source" object with these keys:
+- "document": which source document the test was derived from
+- "section": specific section, heading, or rule ID within the document
+- "quote": verbatim excerpt (≤ 50 words) from the source that justifies this test
+- "derivation": one sentence explaining how the test was derived (e.g. boundary test, negative case, happy path)"""
 
 
 # Default contract for backward compatibility
@@ -89,8 +100,9 @@ def build_system_prompt(
     custom: str | None,
     append: bool = False,
     fmt: str = "steps",
+    trace: bool = False,
 ) -> str:
-    contract = _build_output_contract(fmt)
+    contract = _build_output_contract(fmt, trace=trace)
     default = _build_default_system_prompt(fmt)
     if not custom:
         return default
@@ -116,9 +128,12 @@ def generate_test_cases(
     append_system: bool = False,
     fmt: str = "steps",
     max_tokens: int = 16384,
+    trace: bool = False,
 ) -> tuple[list[dict], str | None]:
     provider = provider or get_provider()
-    system = build_system_prompt(system_prompt, append=append_system, fmt=fmt)
+    system = build_system_prompt(
+        system_prompt, append=append_system, fmt=fmt, trace=trace
+    )
     user = build_user_prompt(context, user_template)
     text = provider.complete(system=system, user=user, max_tokens=max_tokens)
     return _parse_response(text)

@@ -83,6 +83,11 @@ def generate(
         "--format",
         help="Test step format: 'steps' (numbered steps) or 'bdd' (Given/When/Then, business-focused).",
     ),
+    trace: bool = typer.Option(
+        False,
+        "--trace",
+        help="Add source traceability columns (document, section, quote, derivation) for debugging.",
+    ),
     max_tokens: int = typer.Option(
         16384,
         "--max-tokens",
@@ -144,6 +149,7 @@ def generate(
             append_system=append_system,
             fmt=fmt,
             max_tokens=max_tokens,
+            trace=trace,
         )
     except Exception as e:
         console.print(f"[red]Generation failed:[/red] {e}")
@@ -152,7 +158,7 @@ def generate(
     if out is None:
         out = _resolve_output_path(suggested)
 
-    count = write_csv(rows, out)
+    count = write_csv(rows, out, extra_columns=trace)
     console.print(f"[green]Wrote {count} test case(s) to[/green] {out}")
 
 
