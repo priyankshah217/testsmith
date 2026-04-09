@@ -1,4 +1,5 @@
 """Call Claude to generate test cases as structured JSON."""
+
 from __future__ import annotations
 
 import json
@@ -40,8 +41,7 @@ edge cases, negative tests, and non-functional concerns where relevant.
 """
 
 DEFAULT_USER_TEMPLATE = (
-    "Product context:\n\n{context}\n\n"
-    "Generate the test cases now as a JSON array."
+    "Product context:\n\n{context}\n\nGenerate the test cases now as a JSON array."
 )
 
 

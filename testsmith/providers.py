@@ -1,4 +1,5 @@
 """LLM provider abstraction. Supports Anthropic Claude and Google Gemini."""
+
 from __future__ import annotations
 
 import os
@@ -27,9 +28,7 @@ class AnthropicProvider:
             system=system,
             messages=[{"role": "user", "content": user}],
         )
-        return "".join(
-            b.text for b in msg.content if getattr(b, "type", "") == "text"
-        )
+        return "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
 
 
 class GeminiProvider:
@@ -76,6 +75,4 @@ def get_provider(preferred: str | None = None) -> LLMProvider:
     if gemini_key:
         return GeminiProvider(gemini_key)
 
-    raise RuntimeError(
-        "No LLM API key found. Set ANTHROPIC_API_KEY or GEMINI_API_KEY."
-    )
+    raise RuntimeError("No LLM API key found. Set ANTHROPIC_API_KEY or GEMINI_API_KEY.")

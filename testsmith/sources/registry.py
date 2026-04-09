@@ -1,4 +1,5 @@
 """Source registry and dispatcher."""
+
 from __future__ import annotations
 
 from .base import LoadedDoc, Source, SourceError

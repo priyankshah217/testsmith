@@ -1,4 +1,5 @@
 """Tests for Confluence source — URL parsing and HTML-to-text conversion."""
+
 from __future__ import annotations
 
 import pytest
@@ -24,7 +25,9 @@ class TestConfluenceSourceMatches:
         assert not ConfluenceSource().matches("https://example.com/wiki/page")
 
     def test_no_match_no_wiki_path(self):
-        assert not ConfluenceSource().matches("https://acme.atlassian.net/jira/browse/PROJ-1")
+        assert not ConfluenceSource().matches(
+            "https://acme.atlassian.net/jira/browse/PROJ-1"
+        )
 
     def test_no_match_local_file(self):
         assert not ConfluenceSource().matches("./spec.pdf")
@@ -72,10 +75,10 @@ class TestHtmlToText:
 
     def test_skips_ac_macros(self):
         html = (
-            '<p>visible</p>'
+            "<p>visible</p>"
             '<ac:structured-macro ac:name="info">'
-            '<ac:rich-text-body><p>hidden</p></ac:rich-text-body>'
-            '</ac:structured-macro>'
+            "<ac:rich-text-body><p>hidden</p></ac:rich-text-body>"
+            "</ac:structured-macro>"
         )
         text = _html_to_text(html)
         assert "visible" in text

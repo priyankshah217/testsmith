@@ -1,4 +1,5 @@
 """Tests for file-based sources (TextSource, PdfSource, DocxSource)."""
+
 from __future__ import annotations
 
 from pathlib import Path

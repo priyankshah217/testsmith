@@ -14,6 +14,7 @@ Supported URL shapes:
     https://figma.com/file/<fileKey>/<name>?node-id=<id>     (legacy)
     https://figma.com/design/<fileKey>/<name>                (whole file)
 """
+
 from __future__ import annotations
 
 import json
@@ -31,7 +32,15 @@ _FILE_KEY_RE = re.compile(r"/(?:design|file|proto)/([A-Za-z0-9]+)")
 # Node types whose names should become headings in the text dump.
 _CONTAINER_TYPES = {"FRAME", "COMPONENT", "COMPONENT_SET", "INSTANCE", "SECTION"}
 # Node types to skip entirely (purely visual, no structural value).
-_SKIP_TYPES = {"VECTOR", "LINE", "ELLIPSE", "RECTANGLE", "STAR", "POLYGON", "BOOLEAN_OPERATION"}
+_SKIP_TYPES = {
+    "VECTOR",
+    "LINE",
+    "ELLIPSE",
+    "RECTANGLE",
+    "STAR",
+    "POLYGON",
+    "BOOLEAN_OPERATION",
+}
 # Heading depth cap so deeply nested designs don't explode into h7+.
 _MAX_HEADING_DEPTH = 4
 
@@ -123,7 +132,9 @@ class _FigmaClient:
 
     def _get_json(self, path: str) -> dict:
         url = f"{self._BASE}{path}"
-        req = Request(url, headers={"X-Figma-Token": self.token, "Accept": "application/json"})
+        req = Request(
+            url, headers={"X-Figma-Token": self.token, "Accept": "application/json"}
+        )
         try:
             with urlopen(req, timeout=30) as resp:
                 data = resp.read()

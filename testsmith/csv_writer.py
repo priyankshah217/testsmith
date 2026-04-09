@@ -1,4 +1,5 @@
 """Write test cases to CSV."""
+
 from __future__ import annotations
 
 import csv

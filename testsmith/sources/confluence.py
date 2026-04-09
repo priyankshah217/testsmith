@@ -14,6 +14,7 @@ Supported URL shapes:
     https://acme.atlassian.net/wiki/display/<SPACE>/<title>      (tinyurl)
     https://acme.atlassian.net/wiki/x/<tinyId>
 """
+
 from __future__ import annotations
 
 import base64
@@ -50,9 +51,7 @@ class ConfluenceSource:
         page = client.fetch_page(page_id)
 
         title = page.get("title") or f"Confluence page {page_id}"
-        storage_html = (
-            page.get("body", {}).get("storage", {}).get("value", "") or ""
-        )
+        storage_html = page.get("body", {}).get("storage", {}).get("value", "") or ""
         text = _html_to_text(storage_html).strip()
         if not text:
             raise SourceError(f"Confluence page {page_id} returned empty content")
@@ -118,7 +117,10 @@ class _ConfluenceClient:
 
     def _get_json(self, path: str) -> dict:
         url = f"{self.base_url}{path}"
-        req = Request(url, headers={"Authorization": self.auth_header, "Accept": "application/json"})
+        req = Request(
+            url,
+            headers={"Authorization": self.auth_header, "Accept": "application/json"},
+        )
         try:
             with urlopen(req, timeout=30) as resp:
                 data = resp.read()
@@ -153,7 +155,17 @@ class _StorageFormatParser(HTMLParser):
     """
 
     _BLOCK_TAGS = {
-        "p", "div", "br", "li", "tr", "h1", "h2", "h3", "h4", "h5", "h6",
+        "p",
+        "div",
+        "br",
+        "li",
+        "tr",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
     }
     _SKIP_TAGS = {"script", "style"}
 
