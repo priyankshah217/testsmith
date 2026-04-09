@@ -17,9 +17,7 @@ CSV_COLUMNS = [
     "Type",
 ]
 
-_STEPS_GUIDANCE_DEFAULT = (
-    '- Steps: numbered steps, each on its own line (use "\\n" inside the JSON string). Example: "1. Open app\\n2. Click login\\n3. Enter credentials".'
-)
+_STEPS_GUIDANCE_DEFAULT = '- Steps: numbered steps, each on its own line (use "\\n" inside the JSON string). Example: "1. Open app\\n2. Click login\\n3. Enter credentials".'
 
 _STEPS_GUIDANCE_BDD = """\
 - Steps: write in BDD format using Given / When / Then keywords, each on its own line (use "\\n" inside the JSON string).
