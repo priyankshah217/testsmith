@@ -39,6 +39,7 @@ You must provide at least one of `--prompt`, `--file`, or piped stdin.
 | `-s`, `--system TEXT` | Custom system prompt. Inline text or `@path/to/file.txt`. Replaces the default. |
 | `--append-system` | Append `--system` to the default system prompt instead of replacing it. |
 | `-u`, `--user-template TEXT` | Custom user prompt template. Inline text or `@path/to/file.txt`. Use `{context}` as a placeholder. |
+| `-i`, `--interactive` | Let the LLM ask 3–5 clarifying questions before generating. Skip a question with Enter or `skip`; type `done` to stop early. |
 
 ### Examples
 
@@ -70,6 +71,12 @@ Pick a provider explicitly:
 
 ```bash
 testsmith generate -p "Signup flow" --provider anthropic
+```
+
+Interactive mode (LLM asks clarifying questions first):
+
+```bash
+testsmith generate -f spec.pdf --interactive
 ```
 
 Use a custom system prompt from a file:

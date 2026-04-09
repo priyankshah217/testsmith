@@ -10,6 +10,7 @@ from rich.console import Console
 
 from .csv_writer import write_csv
 from .generator import generate_test_cases
+from .interview import run_interview
 from .loaders import build_context
 from .providers import get_provider
 
@@ -45,6 +46,10 @@ def generate(
         None, "--user-template", "-u",
         help="Custom user prompt template. Inline text or @path/to/file.txt. Use {context} as a placeholder.",
     ),
+    interactive: bool = typer.Option(
+        False, "--interactive", "-i",
+        help="Let the LLM ask clarifying questions before generating test cases.",
+    ),
 ):
     """Generate test cases and write them to a CSV file."""
     system_prompt = _resolve_text_arg(system_prompt)
@@ -68,6 +73,12 @@ def generate(
     except Exception as e:
         console.print(f"[red]Provider error:[/red] {e}")
         raise typer.Exit(code=2)
+
+    if interactive:
+        if not sys.stdin.isatty():
+            console.print("[yellow]Stdin is piped — skipping interactive mode.[/yellow]")
+        else:
+            context = run_interview(context, provider=llm, console=console)
 
     console.print(f"[cyan]Generating test cases via {llm.name}...[/cyan]")
     try:
