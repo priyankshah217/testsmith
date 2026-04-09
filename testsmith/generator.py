@@ -118,7 +118,7 @@ def build_system_prompt(
 def build_user_prompt(context: str, template: str | None) -> str:
     tmpl = template or DEFAULT_USER_TEMPLATE
     if "{context}" in tmpl:
-        return tmpl.format(context=context)
+        return tmpl.replace("{context}", context)
     return f"{tmpl}\n\nProduct context:\n\n{context}"
 
 
