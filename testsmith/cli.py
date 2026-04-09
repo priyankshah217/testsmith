@@ -163,7 +163,11 @@ def generate(
             debug=debug,
         )
     except Exception as e:
-        console.print(f"[red]Generation failed:[/red] {e}")
+        console.print(f"[red]Generation failed:[/red] {type(e).__name__}: {e}")
+        if debug:
+            import traceback
+
+            traceback.print_exc()
         raise typer.Exit(code=1)
 
     if out is None:

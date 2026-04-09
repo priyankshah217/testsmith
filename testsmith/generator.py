@@ -142,7 +142,8 @@ def generate_test_cases(
     if debug:
         from pathlib import Path
 
-        Path("debug_response.txt").write_text(text, encoding="utf-8")
+        Path("debug_response.txt").write_text(text or "", encoding="utf-8")
+        Path("debug_system_prompt.txt").write_text(system, encoding="utf-8")
     return _parse_response(text)
 
 
