@@ -81,6 +81,10 @@ You must provide at least one of `--prompt`, `--file`, or piped stdin.
 | `-f`, `--file REF` | Input source: local file (PDF, DOCX, MD, TXT) **or** URL (e.g. Confluence page). Repeatable. |
 | `-o`, `--out PATH` | Output CSV path. If omitted, the LLM suggests a kebab-case filename based on the feature (e.g. `login-social-auth.csv`). Collisions get `_2`, `_3`, ... |
 | `--provider TEXT` | LLM provider: `anthropic` or `gemini`. Auto-detected from env if omitted. |
+| `-m`, `--model TEXT` | LLM model name (e.g. `claude-sonnet-4-6`, `gemini-2.5-flash`). Defaults per provider. |
+| `-t`, `--temperature FLOAT` | Sampling temperature (0.0–2.0). Lower = more deterministic. |
+| `--top-p FLOAT` | Nucleus sampling top-p (0.0–1.0). |
+| `--format TEXT` | Test step format: `steps` (default, numbered) or `bdd` (Given/When/Then, business-focused). |
 | `-s`, `--system TEXT` | Custom system prompt. Inline text or `@path/to/file.txt`. Replaces the default. |
 | `--append-system` | Append `--system` to the default system prompt instead of replacing it. |
 | `-u`, `--user-template TEXT` | Custom user prompt template. Inline text or `@path/to/file.txt`. Use `{context}` as a placeholder. |
@@ -172,6 +176,18 @@ Interactive mode (LLM asks clarifying questions only when genuinely ambiguous):
 testsmith -i -p "Checkout flow with guest and returning users"
 ```
 
+Generate BDD-style test cases (Given/When/Then, business-focused):
+
+```bash
+testsmith -p "Subscription renewal flow" --format bdd
+```
+
+Use a specific model with custom temperature:
+
+```bash
+testsmith -p "Signup flow" -m claude-sonnet-4-6 -t 0.3
+```
+
 Use a custom system prompt from a file:
 
 ```bash
@@ -196,6 +212,15 @@ Test cases are written to a CSV with columns:
 `ID, Title, Preconditions, Steps, Expected Result, Priority, Type`
 
 By default the filename is suggested by the LLM based on the feature context; pass `-o` to override.
+
+### Step formats
+
+| `--format` | Steps column example |
+| --- | --- |
+| `steps` (default) | `1. Open app \| 2. Enter credentials \| 3. Submit form` |
+| `bdd` | `Given user has an active account \| When user provides valid credentials \| Then user is authenticated` |
+
+BDD mode enforces **business-focused language** — steps describe domain intent and outcomes, not UI interactions (no "click", "tap", "navigate", etc.).
 
 ## Claude Code skill
 

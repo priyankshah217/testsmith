@@ -24,6 +24,10 @@ testsmith [OPTIONS]
                              login-social-auth.csv). Collisions get _2, _3, ...
   -i, --interactive          Let the LLM ask clarifying questions first
       --provider TEXT        anthropic | gemini
+  -m, --model TEXT           LLM model name (e.g. claude-sonnet-4-6, gemini-2.5-flash)
+  -t, --temperature FLOAT    Sampling temperature (0.0–2.0)
+      --top-p FLOAT          Nucleus sampling top-p (0.0–1.0)
+      --format TEXT           Step format: steps (default) or bdd (Given/When/Then)
   -s, --system TEXT          Custom system prompt. Inline or @path/to/file
       --append-system        Append --system to default instead of replacing
   -u, --user-template TEXT   Custom user prompt. Inline or @path. Use {context}
@@ -55,7 +59,7 @@ Figma extraction is **text-only** in v1: frame/component names become headings, 
 Columns: `ID, Title, Preconditions, Steps, Expected Result, Priority, Type`
 
 - `ID`: `TC-001`, `TC-002`, ...
-- `Steps`: numbered, separated by ` | `
+- `Steps`: numbered, separated by ` | ` (default) — or Given/When/Then with `--format bdd`
 - `Priority`: `P0`–`P3`
 - `Type`: `Functional`, `Negative`, `Edge`, `UI`, `Integration`, `Performance`, `Security`, `Accessibility`
 
@@ -71,11 +75,13 @@ When the user asks for test cases:
    - Mixed: `testsmith -p "<context>" -f <path1> -f <path2>`
    - Force a filename: add `-o <out>.csv` when the user specifies one.
 
-3. **Custom prompting.** Prefer `--append-system` over `--system` so the built-in JSON/CSV output contract stays intact. Use full `--system` replacement only when the user explicitly wants to rewrite the QA persona.
+3. **Step format.** If the user asks for BDD, Gherkin, or Given/When/Then style test cases, add `--format bdd`. BDD mode produces business-focused steps (no UI-interaction words like click, tap, navigate). Default is `--format steps` (numbered).
 
-4. **Run it.** Execute the command via Bash from the user's shell (ANTHROPIC_API_KEY / GEMINI_API_KEY are expected to be set in the environment).
+4. **Custom prompting.** Prefer `--append-system` over `--system` so the built-in JSON/CSV output contract stays intact. Use full `--system` replacement only when the user explicitly wants to rewrite the QA persona.
 
-5. **Report.** After the command succeeds, tell the user the CSV path and how many rows were generated (testsmith prints this). Offer to open/preview the first few rows.
+5. **Run it.** Execute the command via Bash from the user's shell (ANTHROPIC_API_KEY / GEMINI_API_KEY are expected to be set in the environment).
+
+6. **Report.** After the command succeeds, tell the user the CSV path and how many rows were generated (testsmith prints this). Offer to open/preview the first few rows.
 
 ## Examples
 
@@ -94,6 +100,12 @@ testsmith -p "Password reset flow" -o reset.csv
 
 # Force provider
 testsmith --provider gemini -p "Password reset flow"
+
+# BDD format (business-focused Given/When/Then steps)
+testsmith -p "Subscription renewal flow" --format bdd
+
+# Specific model and temperature
+testsmith -p "Signup flow" -m claude-sonnet-4-6 -t 0.3
 ```
 
 ## Gotchas
