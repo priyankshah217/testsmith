@@ -83,6 +83,11 @@ def generate(
         "--format",
         help="Test step format: 'steps' (numbered steps) or 'bdd' (Given/When/Then, business-focused).",
     ),
+    max_tokens: int = typer.Option(
+        16384,
+        "--max-tokens",
+        help="Maximum output tokens for LLM response. Increase for large prompts or thinking models.",
+    ),
     interactive: bool = typer.Option(
         False,
         "--interactive",
@@ -136,6 +141,7 @@ def generate(
             user_template=user_template,
             append_system=append_system,
             fmt=fmt,
+            max_tokens=max_tokens,
         )
     except Exception as e:
         console.print(f"[red]Generation failed:[/red] {e}")
