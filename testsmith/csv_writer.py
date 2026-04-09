@@ -23,22 +23,24 @@ def _flatten(row: dict, parent_key: str = "") -> dict:
     return items
 
 
-def write_csv(rows: list[dict], out_path: Path) -> int:
+def write_csv(rows: list[dict], out_path: Path, extra_columns: bool = False) -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Flatten nested objects (e.g. source.document, source.section)
     flat_rows = [_flatten(row) for row in rows]
 
-    # Discover extra columns beyond the standard set, preserving order of first appearance
-    extra: list[str] = []
-    seen = set(CSV_COLUMNS)
-    for row in flat_rows:
-        for key in row:
-            if key not in seen:
-                seen.add(key)
-                extra.append(key)
-
-    fieldnames = CSV_COLUMNS + extra
+    if extra_columns:
+        # Discover extra columns beyond the standard set, preserving order of first appearance
+        extra: list[str] = []
+        seen = set(CSV_COLUMNS)
+        for row in flat_rows:
+            for key in row:
+                if key not in seen:
+                    seen.add(key)
+                    extra.append(key)
+        fieldnames = CSV_COLUMNS + extra
+    else:
+        fieldnames = CSV_COLUMNS
 
     with out_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")

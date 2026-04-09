@@ -69,7 +69,7 @@ class TestWriteCsv:
             },
         ]
         out = tmp_path / "out.csv"
-        write_csv(rows, out)
+        write_csv(rows, out, extra_columns=True)
         with out.open(newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             row = next(reader)
@@ -79,12 +79,27 @@ class TestWriteCsv:
         assert row["source.derivation"] == "positive case"
         assert row["ID"] == "TC-001"
 
+    def test_extra_columns_dropped_by_default(self, tmp_path: Path):
+        rows = [
+            {
+                "ID": "TC-001",
+                "Title": "Login",
+                "source": {"document": "PRD"},
+            },
+        ]
+        out = tmp_path / "out.csv"
+        write_csv(rows, out)
+        with out.open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            row = next(reader)
+        assert "source.document" not in row
+
     def test_extra_scalar_columns_preserved(self, tmp_path: Path):
         rows = [
             {"ID": "TC-001", "Title": "Login", "custom_field": "extra value"},
         ]
         out = tmp_path / "out.csv"
-        write_csv(rows, out)
+        write_csv(rows, out, extra_columns=True)
         with out.open(newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             row = next(reader)
