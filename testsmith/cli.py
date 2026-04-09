@@ -92,9 +92,7 @@ def generate(
 ):
     """Generate test cases and write them to a CSV file."""
     if fmt not in ("steps", "bdd"):
-        console.print(
-            "[red]Error:[/red] --format must be 'steps' or 'bdd'."
-        )
+        console.print("[red]Error:[/red] --format must be 'steps' or 'bdd'.")
         raise typer.Exit(code=2)
 
     system_prompt = _resolve_text_arg(system_prompt)

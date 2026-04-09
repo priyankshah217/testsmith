@@ -18,8 +18,7 @@ CSV_COLUMNS = [
 ]
 
 _STEPS_GUIDANCE_DEFAULT = (
-    '- Steps: numbered steps separated by " | " '
-    '(e.g. "1. Open app | 2. Click login").'
+    '- Steps: numbered steps separated by " | " (e.g. "1. Open app | 2. Click login").'
 )
 
 _STEPS_GUIDANCE_BDD = """\
@@ -40,6 +39,7 @@ _STEPS_GUIDANCE_BDD = """\
   • "When" describes the business action or event (not the UI gesture).
   • "Then" asserts the business outcome or side-effect (not what appears on screen).
   • If a verification is about data, say what the DATA should be — not what the SCREEN shows."""
+
 
 def _build_output_contract(fmt: str = "steps") -> str:
     steps_guidance = _STEPS_GUIDANCE_BDD if fmt == "bdd" else _STEPS_GUIDANCE_DEFAULT
@@ -79,6 +79,7 @@ def _build_default_system_prompt(fmt: str = "steps") -> str:
         "edge cases, negative tests, and non-functional concerns where relevant.\n\n"
         f"{contract}\n"
     )
+
 
 DEFAULT_USER_TEMPLATE = (
     "Product context:\n\n{context}\n\nGenerate the test cases now as a JSON array."
