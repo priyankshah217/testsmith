@@ -1,4 +1,5 @@
 """Tests for Figma source — URL parsing and node-tree rendering."""
+
 from __future__ import annotations
 
 import pytest
@@ -60,9 +61,7 @@ class TestParseFigmaUrl:
         assert nid is None
 
     def test_multiple_dashes_in_node_id(self):
-        fk, nid = _parse_figma_url(
-            "https://figma.com/design/abc/N?node-id=100-200"
-        )
+        fk, nid = _parse_figma_url("https://figma.com/design/abc/N?node-id=100-200")
         assert nid == "100:200"
 
 

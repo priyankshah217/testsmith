@@ -1,4 +1,5 @@
 """File-based sources: PDF, DOCX, and plain text."""
+
 from __future__ import annotations
 
 from pathlib import Path

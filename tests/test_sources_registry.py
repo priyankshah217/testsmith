@@ -1,4 +1,5 @@
 """Tests for the source registry and dispatcher."""
+
 from __future__ import annotations
 
 import pytest
