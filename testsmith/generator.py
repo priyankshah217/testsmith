@@ -131,6 +131,7 @@ def generate_test_cases(
     fmt: str = "steps",
     max_tokens: int = 16384,
     trace: bool = False,
+    debug: bool = False,
 ) -> tuple[list[dict], str | None]:
     provider = provider or get_provider()
     system = build_system_prompt(
@@ -138,6 +139,10 @@ def generate_test_cases(
     )
     user = build_user_prompt(context, user_template)
     text = provider.complete(system=system, user=user, max_tokens=max_tokens)
+    if debug:
+        from pathlib import Path
+
+        Path("debug_response.txt").write_text(text, encoding="utf-8")
     return _parse_response(text)
 
 

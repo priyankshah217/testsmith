@@ -88,6 +88,11 @@ def generate(
         "--trace",
         help="Add source traceability columns (document, section, quote, derivation) for debugging.",
     ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        help="Dump raw LLM response to debug_response.txt for troubleshooting parse failures.",
+    ),
     max_tokens: int = typer.Option(
         16384,
         "--max-tokens",
@@ -155,6 +160,7 @@ def generate(
             fmt=fmt,
             max_tokens=max_tokens,
             trace=trace,
+            debug=debug,
         )
     except Exception as e:
         console.print(f"[red]Generation failed:[/red] {e}")
