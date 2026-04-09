@@ -17,9 +17,35 @@ Forge QA test cases from text, documents, Confluence pages, and Figma designs us
 
 ## Installation
 
+### Via pipx (recommended)
+
+[pipx](https://pipx.pypa.io/) installs CLI tools in isolated environments so they don't conflict with your system Python:
+
 ```bash
-cd ~/PythonProjects/testsmith
-pip install -e .
+brew install pipx        # macOS (or see pipx docs for other platforms)
+pipx install git+ssh://git@github.com/priyankshah217/testsmith.git
+```
+
+To upgrade later:
+
+```bash
+pipx upgrade testsmith
+```
+
+### Via pip (in a virtualenv)
+
+```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install git+ssh://git@github.com/priyankshah217/testsmith.git
+```
+
+### From source (for development)
+
+```bash
+git clone git@github.com:priyankshah217/testsmith.git
+cd testsmith
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
 ```
 
 This installs the `testsmith` command on your PATH.
