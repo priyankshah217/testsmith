@@ -22,6 +22,5 @@ def build_context(prompt: str | None, refs: list[str]) -> tuple[str, list[str]]:
             doc = load(ref)
             parts.append(f"## {doc.title}\n{doc.text}")
         except SourceError as e:
-            parts.append(f"## {ref}\n[ERROR loading source: {e}]")
             errors.append(f"{ref}: {e}")
     return _SEPARATOR.join(parts), errors

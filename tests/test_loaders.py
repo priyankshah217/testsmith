@@ -37,9 +37,9 @@ class TestBuildContext:
         assert "---" in ctx  # separator between parts
         assert errors == []
 
-    def test_bad_ref_produces_error_marker(self):
+    def test_bad_ref_excluded_from_context(self):
         ctx, errors = build_context(None, ["/nonexistent/file.txt"])
-        assert "[ERROR loading source" in ctx
+        assert "[ERROR loading source" not in ctx
         assert len(errors) == 1
         assert "/nonexistent/file.txt" in errors[0]
 
