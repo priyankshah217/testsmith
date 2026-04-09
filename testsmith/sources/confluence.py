@@ -65,7 +65,7 @@ class ConfluenceSource:
 
 class _ConfluenceClient:
     def __init__(self, base_url: str, email: str, api_token: str):
-        self.base_url = base_url.rstrip("/")
+        self.base_url = base_url.rstrip("/").removesuffix("/wiki")
         token = base64.b64encode(f"{email}:{api_token}".encode("utf-8")).decode("ascii")
         self.auth_header = f"Basic {token}"
 
