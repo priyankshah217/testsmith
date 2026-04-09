@@ -7,8 +7,12 @@ import pytest
 from testsmith.sources.base import SourceError
 from testsmith.sources.figma import (
     FigmaSource,
+    _is_auto_generated_name,
+    _is_qa_relevant_text,
+    _is_relevant_name,
     _parse_figma_url,
     _render_node,
+    _truncate,
 )
 
 
@@ -82,12 +86,13 @@ class TestRenderNode:
     def test_component_with_description(self):
         node = {
             "type": "COMPONENT",
-            "name": "Button",
+            "name": "SubmitButton",
             "description": "Primary CTA button",
             "children": [],
         }
         text = _render_node(node, depth=2)
-        assert "## Button" in text
+        assert "## SubmitButton" in text
+        assert "[interactive]" in text
         assert "Primary CTA button" in text
 
     def test_skips_visual_nodes(self):
@@ -139,6 +144,75 @@ class TestRenderNode:
         node = {"type": "GROUP", "name": "Controls", "children": []}
         text = _render_node(node, depth=1)
         assert text.strip() == "- Controls"
+
+    def test_auto_generated_name_skipped(self):
+        node = {
+            "type": "FRAME",
+            "name": "Frame 123",
+            "children": [
+                {"type": "TEXT", "name": "t", "characters": "Hello"},
+            ],
+        }
+        text = _render_node(node, depth=1)
+        assert "Frame 123" not in text
+        assert "Hello" in text
+
+    def test_interactive_control_tagged(self):
+        node = {"type": "FRAME", "name": "EmailInput", "children": []}
+        text = _render_node(node, depth=1)
+        assert "[interactive]" in text
+        assert "EmailInput" in text
+
+    def test_qa_text_bolded(self):
+        node = {"type": "TEXT", "name": "err", "characters": "Invalid email address"}
+        text = _render_node(node, depth=1)
+        assert "**Invalid email address**" in text
+
+    def test_normal_text_not_bolded(self):
+        node = {"type": "TEXT", "name": "t", "characters": "Welcome back"}
+        text = _render_node(node, depth=1)
+        assert text.strip() == "Welcome back"
+        assert "**" not in text
+
+    def test_interactive_group_tagged(self):
+        node = {"type": "GROUP", "name": "Dropdown Menu", "children": []}
+        text = _render_node(node, depth=1)
+        assert "[interactive]" in text
+
+
+class TestSmartFiltering:
+    def test_auto_generated_names_detected(self):
+        assert _is_auto_generated_name("Frame 123")
+        assert _is_auto_generated_name("Group 45")
+        assert _is_auto_generated_name("Rectangle 7")
+        assert not _is_auto_generated_name("Login Form")
+        assert not _is_auto_generated_name("Header")
+
+    def test_interactive_patterns(self):
+        assert _is_relevant_name("SubmitButton")
+        assert _is_relevant_name("email-input")
+        assert _is_relevant_name("Dropdown Menu")
+        assert _is_relevant_name("Toggle Switch")
+        assert not _is_relevant_name("Background")
+        assert not _is_relevant_name("Spacer")
+
+    def test_qa_text_patterns(self):
+        assert _is_qa_relevant_text("Error: invalid email")
+        assert _is_qa_relevant_text("Please wait, loading...")
+        assert _is_qa_relevant_text("No results found")
+        assert _is_qa_relevant_text("Sign in to continue")
+        assert not _is_qa_relevant_text("Welcome to our app")
+        assert not _is_qa_relevant_text("Hello world")
+
+    def test_truncate_short_text(self):
+        text = "short"
+        assert _truncate(text) == text
+
+    def test_truncate_long_text(self):
+        text = "x" * 40_000
+        result = _truncate(text)
+        assert len(result) < 40_000
+        assert "truncated" in result
 
 
 class TestFigmaSourceLoadRequiresEnv:
