@@ -1,6 +1,6 @@
 # testsmith
 
-Forge QA test cases from text, documents, and Confluence pages using LLMs.
+Forge QA test cases from text, documents, Confluence pages, and Figma designs using LLMs.
 
 `testsmith` is a CLI that takes a feature description and/or supporting sources (local files or URLs), sends them to an LLM (Anthropic Claude or Google Gemini), and writes the generated test cases to a CSV file.
 
@@ -50,8 +50,9 @@ You must provide at least one of `--prompt`, `--file`, or piped stdin.
 | DOCX | `-f ./specs/payment.docx` |
 | Markdown / text | `-f ./notes.md` |
 | Confluence page | `-f https://acme.atlassian.net/wiki/spaces/ENG/pages/12345/Checkout-PRD` |
+| Figma design (text-only) | `-f "https://www.figma.com/design/<fileKey>/<name>?node-id=1-23"` |
 
-Adding new sources (Figma, Notion, Jira, ...) is a single file in `testsmith/sources/` — see `testsmith/sources/base.py` for the `Source` protocol.
+Adding new sources (Notion, Jira, Linear, ...) is a single file in `testsmith/sources/` — see `testsmith/sources/base.py` for the `Source` protocol.
 
 ### Confluence setup
 
@@ -62,6 +63,16 @@ export CONFLUENCE_BASE_URL=https://<your-site>.atlassian.net
 export CONFLUENCE_EMAIL=you@example.com
 export CONFLUENCE_API_TOKEN=<token from id.atlassian.com/manage-profile/security/api-tokens>
 ```
+
+### Figma setup
+
+Set a personal access token to fetch Figma designs:
+
+```bash
+export FIGMA_API_TOKEN=<token from figma.com/settings>
+```
+
+Figma support is **text-only** in v1: frame/component names become headings, text layers become body text, and component descriptions are preserved. Purely visual nodes (vectors, rectangles, etc.) are skipped. If the URL contains a `node-id`, only that subtree is fetched; otherwise the whole file is loaded. **Tip:** right-click a frame in Figma → Copy link to get a URL with the right `node-id`.
 
 ### Examples
 
@@ -83,10 +94,17 @@ Generate from a Confluence page:
 testsmith -f https://acme.atlassian.net/wiki/spaces/ENG/pages/12345/Checkout-PRD
 ```
 
-Mix a prompt with supporting files and Confluence pages:
+Generate from a Figma design (quote the URL — the `?` will be interpreted by your shell otherwise):
+
+```bash
+testsmith -f "https://www.figma.com/design/ABC123/Checkout?node-id=42-1337"
+```
+
+Mix a prompt with supporting files, Confluence pages, and Figma designs:
 
 ```bash
 testsmith -p "Focus on edge cases" \
+  -f "https://www.figma.com/design/ABC123/Checkout?node-id=42-1337" \
   -f https://acme.atlassian.net/wiki/spaces/ENG/pages/12345/PRD \
   -f specs/wireframes.pdf
 ```
