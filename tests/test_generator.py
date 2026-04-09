@@ -11,6 +11,7 @@ from testsmith.generator import (
     build_system_prompt,
     build_user_prompt,
     DEFAULT_SYSTEM_PROMPT,
+    _build_output_contract,
 )
 
 
@@ -28,6 +29,39 @@ class TestBuildSystemPrompt:
         result = build_system_prompt("Extra instructions", append=True)
         assert "senior QA engineer" in result
         assert "Extra instructions" in result
+
+    def test_bdd_format(self):
+        result = build_system_prompt(None, fmt="bdd")
+        assert "Given" in result
+        assert "When" in result
+        assert "Then" in result
+        assert "Business-focused language" in result
+
+    def test_bdd_format_with_custom_append(self):
+        result = build_system_prompt("Extra", append=True, fmt="bdd")
+        assert "Given" in result
+        assert "Extra" in result
+
+    def test_bdd_format_with_custom_replace(self):
+        result = build_system_prompt("My custom prompt", fmt="bdd")
+        assert "My custom prompt" in result
+        assert "Given" in result
+        assert "senior QA engineer" not in result
+
+
+class TestOutputContract:
+    def test_default_has_numbered_steps(self):
+        contract = _build_output_contract("steps")
+        assert "numbered steps" in contract
+        assert "Given" not in contract
+
+    def test_bdd_has_given_when_then(self):
+        contract = _build_output_contract("bdd")
+        assert "Given" in contract
+        assert "When" in contract
+        assert "Then" in contract
+        assert "NEVER use UI-action words" in contract
+        assert "numbered steps" not in contract
 
 
 class TestBuildUserPrompt:

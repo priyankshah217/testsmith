@@ -78,6 +78,11 @@ def generate(
         "-u",
         help="Custom user prompt template. Inline text or @path/to/file.txt. Use {context} as a placeholder.",
     ),
+    fmt: str = typer.Option(
+        "steps",
+        "--format",
+        help="Test step format: 'steps' (numbered steps) or 'bdd' (Given/When/Then, business-focused).",
+    ),
     interactive: bool = typer.Option(
         False,
         "--interactive",
@@ -86,6 +91,12 @@ def generate(
     ),
 ):
     """Generate test cases and write them to a CSV file."""
+    if fmt not in ("steps", "bdd"):
+        console.print(
+            "[red]Error:[/red] --format must be 'steps' or 'bdd'."
+        )
+        raise typer.Exit(code=2)
+
     system_prompt = _resolve_text_arg(system_prompt)
     user_template = _resolve_text_arg(user_template)
 
@@ -126,6 +137,7 @@ def generate(
             system_prompt=system_prompt,
             user_template=user_template,
             append_system=append_system,
+            fmt=fmt,
         )
     except Exception as e:
         console.print(f"[red]Generation failed:[/red] {e}")
