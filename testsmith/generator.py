@@ -148,21 +148,41 @@ def _parse_response(text: str) -> tuple[list[dict], str | None]:
     if fence:
         text = fence.group(1).strip()
 
-    # Try object form first ({"suggested_filename": ..., "test_cases": [...]})
-    if text.startswith("{"):
+    # Strip trailing commas before } or ] (common LLM mistake)
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+
+    # Try to find JSON object or array in the response
+    if not text.startswith(("{", "[")):
+        # Model may have added prose before/after the JSON
+        # Prefer array match (bare array) over object match (single object inside array)
+        arr_match = re.search(r"\[.*\]", text, re.DOTALL)
+        obj_match = re.search(r"\{.*\}", text, re.DOTALL)
+        if arr_match:
+            text = arr_match.group(0)
+        elif obj_match:
+            text = obj_match.group(0)
+
+    try:
         data = json.loads(text)
+    except json.JSONDecodeError as e:
+        # Show a useful snippet around the error position
+        pos = e.pos or 0
+        snippet = text[max(0, pos - 40) : pos + 40]
+        raise ValueError(
+            f"Failed to parse model response as JSON at position {pos}: {e.msg}\n"
+            f"  ...{snippet}..."
+        ) from e
+
+    # Object form: {"suggested_filename": ..., "test_cases": [...]}
+    if isinstance(data, dict):
         rows = data.get("test_cases")
         if not isinstance(rows, list):
             raise ValueError("Model response missing 'test_cases' array")
         name = data.get("suggested_filename")
         return rows, name if isinstance(name, str) and name.strip() else None
 
-    # Back-compat: bare array
-    if not text.startswith("["):
-        match = re.search(r"\[.*\]", text, re.DOTALL)
-        if match:
-            text = match.group(0)
-    data = json.loads(text)
-    if not isinstance(data, list):
-        raise ValueError("Model did not return a JSON array or object")
-    return data, None
+    # Bare array
+    if isinstance(data, list):
+        return data, None
+
+    raise ValueError("Model did not return a JSON array or object")
