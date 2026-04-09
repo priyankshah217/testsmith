@@ -16,11 +16,14 @@ CSV_COLUMNS = [
     "Type",
 ]
 
-OUTPUT_CONTRACT = f"""Return ONLY a JSON array (no prose, no markdown fences). Each element must be
-an object with EXACTLY these keys:
+OUTPUT_CONTRACT = f"""Return ONLY a JSON object (no prose, no markdown fences) with EXACTLY these keys:
+- "suggested_filename": a short, descriptive, kebab-case filename (no extension, no path,
+  max 60 chars) reflecting the feature under test. Examples: "login-social-auth",
+  "checkout-guest-flow", "password-reset-email".
+- "test_cases": a JSON array where each element is an object with EXACTLY these keys:
 {json.dumps(CSV_COLUMNS)}
 
-Field guidance:
+Field guidance for each test case:
 - ID: "TC-001", "TC-002", ... sequential.
 - Title: short imperative summary.
 - Preconditions: setup/state required; use "None" if not applicable.
@@ -65,26 +68,36 @@ def generate_test_cases(
     system_prompt: str | None = None,
     user_template: str | None = None,
     append_system: bool = False,
-) -> list[dict]:
+) -> tuple[list[dict], str | None]:
     provider = provider or get_provider()
     system = build_system_prompt(system_prompt, append=append_system)
     user = build_user_prompt(context, user_template)
     text = provider.complete(system=system, user=user, max_tokens=8192)
-    return _parse_json_array(text)
+    return _parse_response(text)
 
 
-def _parse_json_array(text: str) -> list[dict]:
+def _parse_response(text: str) -> tuple[list[dict], str | None]:
     text = text.strip()
     # Strip accidental code fences.
     fence = re.match(r"^```(?:json)?\s*(.*?)\s*```$", text, re.DOTALL)
     if fence:
         text = fence.group(1).strip()
-    # Find the first [ ... ] block if there's surrounding prose.
+
+    # Try object form first ({"suggested_filename": ..., "test_cases": [...]})
+    if text.startswith("{"):
+        data = json.loads(text)
+        rows = data.get("test_cases")
+        if not isinstance(rows, list):
+            raise ValueError("Model response missing 'test_cases' array")
+        name = data.get("suggested_filename")
+        return rows, name if isinstance(name, str) and name.strip() else None
+
+    # Back-compat: bare array
     if not text.startswith("["):
         match = re.search(r"\[.*\]", text, re.DOTALL)
         if match:
             text = match.group(0)
     data = json.loads(text)
     if not isinstance(data, list):
-        raise ValueError("Model did not return a JSON array")
-    return data
+        raise ValueError("Model did not return a JSON array or object")
+    return data, None
