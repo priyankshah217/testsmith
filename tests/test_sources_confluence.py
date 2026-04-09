@@ -73,16 +73,29 @@ class TestHtmlToText:
         assert "1. first" in text
         assert "1. second" in text
 
-    def test_skips_ac_macros(self):
+    def test_preserves_text_in_ac_rich_text_body(self):
         html = (
             "<p>visible</p>"
             '<ac:structured-macro ac:name="info">'
-            "<ac:rich-text-body><p>hidden</p></ac:rich-text-body>"
+            "<ac:rich-text-body><p>inside macro</p></ac:rich-text-body>"
             "</ac:structured-macro>"
         )
         text = _html_to_text(html)
         assert "visible" in text
-        assert "hidden" not in text
+        assert "inside macro" in text
+
+    def test_skips_ac_parameter(self):
+        html = (
+            "<p>visible</p>"
+            '<ac:structured-macro ac:name="code">'
+            "<ac:parameter>java</ac:parameter>"
+            "<ac:rich-text-body><p>code content</p></ac:rich-text-body>"
+            "</ac:structured-macro>"
+        )
+        text = _html_to_text(html)
+        assert "visible" in text
+        assert "code content" in text
+        assert "java" not in text  # ac:parameter content is skipped
 
     def test_skips_script_and_style(self):
         html = "<p>ok</p><script>alert(1)</script><style>.x{}</style>"

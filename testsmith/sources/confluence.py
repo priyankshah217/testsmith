@@ -168,6 +168,8 @@ class _StorageFormatParser(HTMLParser):
         "h6",
     }
     _SKIP_TAGS = {"script", "style"}
+    # ac: tags that never contain readable text — skip them AND their children.
+    _AC_SKIP_TAGS = {"ac:parameter", "ac:placeholder"}
 
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -176,8 +178,12 @@ class _StorageFormatParser(HTMLParser):
         self._list_markers: list[str] = []
 
     def handle_starttag(self, tag: str, attrs) -> None:  # type: ignore[override]
-        if tag in self._SKIP_TAGS or tag.startswith("ac:"):
+        if tag in self._SKIP_TAGS or tag in self._AC_SKIP_TAGS:
             self._skip_depth += 1
+            return
+        # Other ac: tags (ac:layout, ac:rich-text-body, ac:structured-macro,
+        # etc.) are structural — ignore the tag itself but let text through.
+        if tag.startswith("ac:"):
             return
         if tag in ("ul", "ol"):
             self._list_markers.append("- " if tag == "ul" else "1. ")
@@ -188,9 +194,11 @@ class _StorageFormatParser(HTMLParser):
             self._parts.append("\n")
 
     def handle_endtag(self, tag: str) -> None:  # type: ignore[override]
-        if tag in self._SKIP_TAGS or tag.startswith("ac:"):
+        if tag in self._SKIP_TAGS or tag in self._AC_SKIP_TAGS:
             if self._skip_depth:
                 self._skip_depth -= 1
+            return
+        if tag.startswith("ac:"):
             return
         if tag in ("ul", "ol") and self._list_markers:
             self._list_markers.pop()
