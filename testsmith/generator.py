@@ -47,8 +47,9 @@ def _build_output_contract(fmt: str = "steps") -> str:
 - "suggested_filename": a short, descriptive, kebab-case filename (no extension, no path,
   max 60 chars) reflecting the feature under test. Examples: "login-social-auth",
   "checkout-guest-flow", "password-reset-email".
-- "test_cases": a JSON array where each element is an object with EXACTLY these keys:
+- "test_cases": a JSON array where each element is an object with AT LEAST these keys:
 {json.dumps(CSV_COLUMNS)}
+(Additional keys are allowed and will be preserved in the JSON but omitted from the CSV.)
 
 Field guidance for each test case:
 - ID: "TC-001", "TC-002", ... sequential.
@@ -116,11 +117,12 @@ def generate_test_cases(
     user_template: str | None = None,
     append_system: bool = False,
     fmt: str = "steps",
+    max_tokens: int = 16384,
 ) -> tuple[list[dict], str | None]:
     provider = provider or get_provider()
     system = build_system_prompt(system_prompt, append=append_system, fmt=fmt)
     user = build_user_prompt(context, user_template)
-    text = provider.complete(system=system, user=user, max_tokens=8192)
+    text = provider.complete(system=system, user=user, max_tokens=max_tokens)
     return _parse_response(text)
 
 
