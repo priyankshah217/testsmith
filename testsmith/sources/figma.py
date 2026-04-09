@@ -160,12 +160,12 @@ class _FigmaClient:
             url, headers={"X-Figma-Token": self.token, "Accept": "application/json"}
         )
         try:
-            with urlopen(req, timeout=30) as resp:
+            with urlopen(req, timeout=60) as resp:
                 data = resp.read()
         except HTTPError as e:
             raise SourceError(f"Figma API {e.code} for {path}: {e.reason}") from e
-        except URLError as e:
-            raise SourceError(f"Figma API unreachable: {e.reason}") from e
+        except (URLError, TimeoutError) as e:
+            raise SourceError(f"Figma API unreachable: {e}") from e
         try:
             return json.loads(data)
         except json.JSONDecodeError as e:
