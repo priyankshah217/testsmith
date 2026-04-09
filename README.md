@@ -217,8 +217,10 @@ By default the filename is suggested by the LLM based on the feature context; pa
 
 | `--format` | Steps column example |
 | --- | --- |
-| `steps` (default) | `1. Open app \| 2. Enter credentials \| 3. Submit form` |
-| `bdd` | `Given user has an active account \| When user provides valid credentials \| Then user is authenticated` |
+| `steps` (default) | `1. Open app` &#10; `2. Enter credentials` &#10; `3. Submit form` |
+| `bdd` | `Given user has an active account` &#10; `When user provides valid credentials` &#10; `Then user is authenticated` |
+
+Each step is on its own line within the CSV cell (newline-separated), making long step lists easy to read in any spreadsheet tool.
 
 BDD mode enforces **business-focused language** — steps describe domain intent and outcomes, not UI interactions (no "click", "tap", "navigate", etc.).
 

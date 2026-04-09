@@ -18,13 +18,16 @@ CSV_COLUMNS = [
 ]
 
 _STEPS_GUIDANCE_DEFAULT = (
-    '- Steps: numbered steps separated by " | " (e.g. "1. Open app | 2. Click login").'
+    "- Steps: numbered steps, one per line using a literal newline character (\\n) as separator.\n"
+    '  Example: "1. Open app\\n2. Enter credentials\\n3. Submit form"\n'
+    "  Do NOT use pipe (|) to separate steps. Each step goes on its own line."
 )
 
 _STEPS_GUIDANCE_BDD = """\
-- Steps: write in BDD format using Given / When / Then keywords, separated by " | ".
+- Steps: write in BDD format using Given / When / Then keywords, one per line using a literal newline character (\\n) as separator.
   Each step MUST start with one of: "Given", "When", "Then", "And", "But".
-  Example: "Given user has an active subscription | When the subscription renewal date arrives | Then the subscription is renewed automatically | And the user receives a confirmation email"
+  Do NOT use pipe (|) to separate steps. Each step goes on its own line.
+  Example: "Given user has an active subscription\\nWhen the subscription renewal date arrives\\nThen the subscription is renewed automatically\\nAnd the user receives a confirmation email"
 
   CRITICAL — Business-focused language rules for BDD steps:
   • Steps MUST describe business intent, outcomes, and domain actions — NOT UI interactions.

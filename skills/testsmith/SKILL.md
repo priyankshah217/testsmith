@@ -59,7 +59,7 @@ Figma extraction is **text-only** in v1: frame/component names become headings, 
 Columns: `ID, Title, Preconditions, Steps, Expected Result, Priority, Type`
 
 - `ID`: `TC-001`, `TC-002`, ...
-- `Steps`: numbered, separated by ` | ` (default) — or Given/When/Then with `--format bdd`
+- `Steps`: one step per line (newline-separated within the CSV cell). Numbered by default, or Given/When/Then with `--format bdd`
 - `Priority`: `P0`–`P3`
 - `Type`: `Functional`, `Negative`, `Edge`, `UI`, `Integration`, `Performance`, `Security`, `Accessibility`
 

@@ -22,5 +22,5 @@ def _stringify(value) -> str:
     if value is None:
         return ""
     if isinstance(value, list):
-        return " | ".join(str(v) for v in value)
+        return "\n".join(str(v) for v in value)
     return str(value)

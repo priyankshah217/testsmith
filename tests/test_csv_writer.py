@@ -38,7 +38,7 @@ class TestWriteCsv:
         with out.open(newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             row = next(reader)
-        assert row["Steps"] == "step1 | step2"
+        assert row["Steps"] == "step1\nstep2"
 
     def test_handles_none_values(self, tmp_path: Path):
         rows = [{"ID": "TC-001", "Title": None}]
