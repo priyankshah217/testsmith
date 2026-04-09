@@ -25,6 +25,7 @@ testsmith/
 ├── interview.py     Adaptive clarification loop (one-at-a-time, LLM-gated)
 ├── generator.py     Builds prompts, calls the provider, parses JSON response
 │                    (returns tuple: (rows, suggested_filename))
+│                    Supports --format (steps | bdd) via _build_output_contract()
 ├── providers.py     LLMProvider protocol + AnthropicProvider + GeminiProvider
 └── csv_writer.py    Writes rows to CSV with the canonical column schema
 ```
@@ -103,6 +104,12 @@ testsmith -p "Login screen with email + password and social auth"
   `LLMProvider.complete(system, user, max_tokens) -> str`. Keep this
   interface narrow — features that need structured output (like the
   filename suggestion) live in the prompt contract, not the provider API.
+- **Format is prompt-driven.** The `--format` flag (`steps` or `bdd`)
+  controls test step style purely through the output contract prompt in
+  `generator.py` (`_build_output_contract(fmt)`). BDD mode enforces
+  business-focused Given/When/Then language and blocks UI-interaction
+  words. Adding new formats means adding a new `_STEPS_GUIDANCE_*`
+  constant — no changes to CSV writer or parsing needed.
 
 ## Out of scope for v1 (intentional)
 
