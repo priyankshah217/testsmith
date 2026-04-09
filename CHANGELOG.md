@@ -7,9 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-04-09
+
 ### Added
-- Open-source release metadata: `LICENSE` (MIT), `CHANGELOG.md`, expanded
-  `pyproject.toml` metadata, README badges.
+- `--model`, `--temperature`, `--top-p` flags with automatic provider
+  inference from model name and mismatch detection.
+- `--format bdd` flag for business-focused Given/When/Then test steps.
+- `--trace` flag for on-demand source traceability columns (document,
+  section, quote, derivation). Design sources like Figma describe visual
+  elements instead of verbatim quotes.
+- `--max-tokens` flag to control LLM output budget (default 16384).
+- Dynamic CSV columns: extra fields from LLM responses (e.g. source
+  traceability) are included when `--trace` is enabled.
+- BDD steps now render on separate lines in CSV cells.
+- GitHub Actions publish workflow for automated PyPI releases.
+
+### Fixed
+- Confluence pages using `ac:` macros (layouts, structured macros)
+  returned empty content. Now preserves text from content-bearing tags.
+- Source loading errors now shown as visible warnings instead of being
+  silently embedded in context.
+- Custom system prompts with extra fields (e.g. source traceability)
+  no longer conflict with the output contract.
+- `CONFLUENCE_BASE_URL` with trailing `/wiki` no longer causes double
+  path in API requests.
+- Figma API timeout increased from 30s to 60s; `TimeoutError` now
+  caught gracefully instead of crashing.
+- Gemini thinking models no longer exhaust token budget on large prompts.
 
 ## [0.1.0] - 2026-04-09
 
