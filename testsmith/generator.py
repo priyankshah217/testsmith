@@ -64,9 +64,11 @@ Field guidance for each test case:
 _TRACE_GUIDANCE_TEXT = """
 IMPORTANT — Source traceability (required):
 Each test case MUST also include a "source" object with these keys:
-- "document": which source document the test was derived from
-- "section": specific section, heading, or rule ID within the document
-- "quote": verbatim excerpt (≤ 50 words) from the source that justifies this test
+- "document": which source document or design file the test was derived from
+- "section": specific section, heading, rule ID, or component/screen name
+- "quote": verbatim excerpt (≤ 50 words) from the source that justifies this test.
+  For design sources (e.g. Figma) where no text is quotable, describe the visual element
+  or interaction pattern instead (e.g. "Toggle switch for Delivery option in Deal Method section").
 - "derivation": one sentence explaining how the test was derived (e.g. boundary test, negative case, happy path)"""
 
 
