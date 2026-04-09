@@ -24,9 +24,9 @@ def generate(
     prompt: Optional[str] = typer.Option(
         None, "--prompt", "-p", help="Plain text prompt / feature description."
     ),
-    file: list[Path] = typer.Option(
-        [], "--file", "-f", exists=True, readable=True,
-        help="Local file (PDF, DOCX, MD, TXT). Repeatable.",
+    file: list[str] = typer.Option(
+        [], "--file", "-f",
+        help="Input source: local file (PDF/DOCX/MD/TXT) or URL. Repeatable.",
     ),
     out: Optional[Path] = typer.Option(
         None, "--out", "-o",
@@ -64,7 +64,7 @@ def generate(
         console.print("[red]Error:[/red] provide --prompt and/or --file (or pipe text via stdin).")
         raise typer.Exit(code=2)
 
-    console.print(f"[cyan]Loading context[/cyan] ({len(file)} file(s))...")
+    console.print(f"[cyan]Loading context[/cyan] ({len(file)} source(s))...")
     context = build_context(prompt, list(file))
     if not context.strip():
         console.print("[red]Error:[/red] context is empty after loading.")
