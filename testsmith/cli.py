@@ -1,6 +1,7 @@
 """testsmith CLI entrypoint."""
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 from typing import Optional
@@ -27,8 +28,9 @@ def generate(
         [], "--file", "-f", exists=True, readable=True,
         help="Local file (PDF, DOCX, MD, TXT). Repeatable.",
     ),
-    out: Path = typer.Option(
-        Path("test_cases.csv"), "--out", "-o", help="Output CSV path."
+    out: Optional[Path] = typer.Option(
+        None, "--out", "-o",
+        help="Output CSV path. If omitted, a name is suggested by the LLM.",
     ),
     provider: Optional[str] = typer.Option(
         None, "--provider",
@@ -82,7 +84,7 @@ def generate(
 
     console.print(f"[cyan]Generating test cases via {llm.name}...[/cyan]")
     try:
-        rows = generate_test_cases(
+        rows, suggested = generate_test_cases(
             context,
             provider=llm,
             system_prompt=system_prompt,
@@ -93,8 +95,29 @@ def generate(
         console.print(f"[red]Generation failed:[/red] {e}")
         raise typer.Exit(code=1)
 
+    if out is None:
+        out = _resolve_output_path(suggested)
+
     count = write_csv(rows, out)
     console.print(f"[green]Wrote {count} test case(s) to[/green] {out}")
+
+
+_SLUG_RE = re.compile(r"[^a-z0-9]+")
+
+
+def _slugify(value: str) -> str:
+    slug = _SLUG_RE.sub("-", value.lower()).strip("-")
+    return slug[:60] or "test-cases"
+
+
+def _resolve_output_path(suggested: str | None) -> Path:
+    base = _slugify(suggested) if suggested else "test-cases"
+    path = Path(f"{base}.csv")
+    n = 2
+    while path.exists():
+        path = Path(f"{base}_{n}.csv")
+        n += 1
+    return path
 
 
 def _resolve_text_arg(value: Optional[str]) -> Optional[str]:
