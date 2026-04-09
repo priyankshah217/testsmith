@@ -121,6 +121,11 @@ def generate(
     context, load_errors = build_context(prompt, list(file))
     for err in load_errors:
         console.print(f"[yellow]Warning:[/yellow] failed to load source: {err}")
+    if load_errors and len(load_errors) == len(file) and not prompt:
+        console.print(
+            "[red]Error:[/red] all sources failed to load. Nothing to generate from."
+        )
+        raise typer.Exit(code=2)
     if not context.strip():
         console.print("[red]Error:[/red] context is empty after loading.")
         raise typer.Exit(code=2)
