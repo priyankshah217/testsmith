@@ -1,8 +1,8 @@
 # testsmith
 
-Forge QA test cases from text and documents using LLMs.
+Forge QA test cases from text, documents, and Confluence pages using LLMs.
 
-`testsmith` is a CLI that takes a feature description and/or supporting documents (PDF, DOCX, MD, TXT), sends them to an LLM (Anthropic Claude or Google Gemini), and writes the generated test cases to a CSV file.
+`testsmith` is a CLI that takes a feature description and/or supporting sources (local files or URLs), sends them to an LLM (Anthropic Claude or Google Gemini), and writes the generated test cases to a CSV file.
 
 ## Requirements
 
@@ -23,7 +23,7 @@ This installs the `testsmith` command on your PATH.
 ## Usage
 
 ```bash
-testsmith generate [OPTIONS]
+testsmith [OPTIONS]
 ```
 
 You must provide at least one of `--prompt`, `--file`, or piped stdin.
@@ -33,70 +33,103 @@ You must provide at least one of `--prompt`, `--file`, or piped stdin.
 | Option | Description |
 | --- | --- |
 | `-p`, `--prompt TEXT` | Plain text prompt / feature description. |
-| `-f`, `--file PATH` | Local file to include as context (PDF, DOCX, MD, TXT). Repeatable. |
-| `-o`, `--out PATH` | Output CSV path. Default: `test_cases.csv`. |
+| `-f`, `--file REF` | Input source: local file (PDF, DOCX, MD, TXT) **or** URL (e.g. Confluence page). Repeatable. |
+| `-o`, `--out PATH` | Output CSV path. If omitted, the LLM suggests a kebab-case filename based on the feature (e.g. `login-social-auth.csv`). Collisions get `_2`, `_3`, ... |
 | `--provider TEXT` | LLM provider: `anthropic` or `gemini`. Auto-detected from env if omitted. |
 | `-s`, `--system TEXT` | Custom system prompt. Inline text or `@path/to/file.txt`. Replaces the default. |
 | `--append-system` | Append `--system` to the default system prompt instead of replacing it. |
 | `-u`, `--user-template TEXT` | Custom user prompt template. Inline text or `@path/to/file.txt`. Use `{context}` as a placeholder. |
-| `-i`, `--interactive` | Let the LLM ask 3–5 clarifying questions before generating. Skip a question with Enter or `skip`; type `done` to stop early. |
+| `-i`, `--interactive` | Let the LLM ask clarifying questions adaptively before generating. It asks one question at a time and stops as soon as it has enough context (0–5 questions). Type `skip` to skip a question or `done` to stop early. |
+
+### Supported input sources
+
+| Source | Example |
+| --- | --- |
+| Plain text | `-p "Login screen with social auth"` |
+| PDF | `-f ./specs/checkout.pdf` |
+| DOCX | `-f ./specs/payment.docx` |
+| Markdown / text | `-f ./notes.md` |
+| Confluence page | `-f https://acme.atlassian.net/wiki/spaces/ENG/pages/12345/Checkout-PRD` |
+
+Adding new sources (Figma, Notion, Jira, ...) is a single file in `testsmith/sources/` — see `testsmith/sources/base.py` for the `Source` protocol.
+
+### Confluence setup
+
+Set these environment variables to fetch Confluence pages:
+
+```bash
+export CONFLUENCE_BASE_URL=https://<your-site>.atlassian.net
+export CONFLUENCE_EMAIL=you@example.com
+export CONFLUENCE_API_TOKEN=<token from id.atlassian.com/manage-profile/security/api-tokens>
+```
 
 ### Examples
 
-Generate from an inline prompt:
+Generate from an inline prompt (LLM picks the filename):
 
 ```bash
-testsmith generate -p "Login screen with email + password, forgot password link, and social login"
+testsmith -p "Login screen with email + password, forgot password link, and social login"
 ```
 
-Generate from one or more documents:
+Generate from documents:
 
 ```bash
-testsmith generate -f specs/checkout.pdf -f specs/payment.docx -o checkout_cases.csv
+testsmith -f specs/checkout.pdf -f specs/payment.docx
 ```
 
-Mix a prompt with supporting files:
+Generate from a Confluence page:
 
 ```bash
-testsmith generate -p "Focus on edge cases" -f specs/checkout.pdf
+testsmith -f https://acme.atlassian.net/wiki/spaces/ENG/pages/12345/Checkout-PRD
+```
+
+Mix a prompt with supporting files and Confluence pages:
+
+```bash
+testsmith -p "Focus on edge cases" \
+  -f https://acme.atlassian.net/wiki/spaces/ENG/pages/12345/PRD \
+  -f specs/wireframes.pdf
 ```
 
 Pipe text via stdin:
 
 ```bash
-cat feature.md | testsmith generate
+cat feature.md | testsmith
 ```
 
 Pick a provider explicitly:
 
 ```bash
-testsmith generate -p "Signup flow" --provider anthropic
+testsmith -p "Signup flow" --provider anthropic
 ```
 
-Interactive mode (LLM asks clarifying questions first):
+Interactive mode (LLM asks clarifying questions only when genuinely ambiguous):
 
 ```bash
-testsmith generate -f spec.pdf --interactive
+testsmith -i -p "Checkout flow with guest and returning users"
 ```
 
 Use a custom system prompt from a file:
 
 ```bash
-testsmith generate -f spec.pdf --system @prompts/qa_system.txt
+testsmith -f spec.pdf --system @prompts/qa_system.txt
 ```
 
 Append to the default system prompt instead of replacing it:
 
 ```bash
-testsmith generate -f spec.pdf --system "Focus on accessibility test cases." --append-system
+testsmith -f spec.pdf --system "Focus on accessibility test cases." --append-system
 ```
 
-Use a custom user template with a `{context}` placeholder:
+Force an explicit output filename:
 
 ```bash
-testsmith generate -f spec.pdf --user-template @prompts/user_template.txt
+testsmith -p "Password reset flow" -o reset.csv
 ```
 
 ## Output
 
-Test cases are written to a CSV file (default `test_cases.csv`) in the current directory.
+Test cases are written to a CSV with columns:
+`ID, Title, Preconditions, Steps, Expected Result, Priority, Type`
+
+By default the filename is suggested by the LLM based on the feature context; pass `-o` to override.
