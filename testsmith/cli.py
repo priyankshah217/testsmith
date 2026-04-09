@@ -44,6 +44,23 @@ def generate(
         "--provider",
         help="LLM provider: 'anthropic' or 'gemini'. Auto-detected from env if omitted.",
     ),
+    model: Optional[str] = typer.Option(
+        None,
+        "--model",
+        "-m",
+        help="LLM model name (e.g. 'claude-sonnet-4-6', 'gemini-2.5-flash'). Defaults per provider.",
+    ),
+    temperature: Optional[float] = typer.Option(
+        None,
+        "--temperature",
+        "-t",
+        help="Sampling temperature (0.0–2.0). Lower = more deterministic.",
+    ),
+    top_p: Optional[float] = typer.Option(
+        None,
+        "--top-p",
+        help="Nucleus sampling top-p (0.0–1.0).",
+    ),
     system_prompt: Optional[str] = typer.Option(
         None,
         "--system",
@@ -88,7 +105,7 @@ def generate(
         raise typer.Exit(code=2)
 
     try:
-        llm = get_provider(provider)
+        llm = get_provider(provider, model=model, temperature=temperature, top_p=top_p)
     except Exception as e:
         console.print(f"[red]Provider error:[/red] {e}")
         raise typer.Exit(code=2)
@@ -101,7 +118,7 @@ def generate(
         else:
             context = run_interview(context, provider=llm, console=console)
 
-    console.print(f"[cyan]Generating test cases via {llm.name}...[/cyan]")
+    console.print(f"[cyan]Generating test cases via {llm.name} ({llm.model})...[/cyan]")
     try:
         rows, suggested = generate_test_cases(
             context,
