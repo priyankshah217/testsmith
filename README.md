@@ -196,3 +196,37 @@ Test cases are written to a CSV with columns:
 `ID, Title, Preconditions, Steps, Expected Result, Priority, Type`
 
 By default the filename is suggested by the LLM based on the feature context; pass `-o` to override.
+
+## Claude Code skill
+
+Testsmith ships with a [Claude Code skill](https://docs.anthropic.com/en/docs/claude-code/skills) so Claude can run testsmith for you when you ask for test cases.
+
+### Install the skill
+
+Copy the bundled skill to your Claude Code skills directory:
+
+```bash
+# macOS / Linux
+cp -r skills/testsmith ~/.claude/skills/
+
+# Windows (PowerShell)
+Copy-Item -Recurse skills\testsmith $env:USERPROFILE\.claude\skills\
+```
+
+Or create a symlink so it stays in sync with the repo:
+
+```bash
+ln -s "$(pwd)/skills/testsmith" ~/.claude/skills/testsmith
+```
+
+Once installed, just ask Claude Code: *"generate test cases for the login screen"* — it will invoke testsmith automatically.
+
+## Contributing
+
+```bash
+git clone https://github.com/priyankshah217/testsmith.git
+cd testsmith
+python3 -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pytest tests/ -v
+```
