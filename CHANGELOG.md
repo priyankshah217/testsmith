@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-04-09
+
+### Fixed
+- Failed sources no longer inject error markers into LLM context,
+  preventing the LLM from generating test cases about the errors.
+- CLI aborts with a clear message when all sources fail to load.
+
 ## [0.2.0] - 2026-04-09
 
 ### Added
