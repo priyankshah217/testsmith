@@ -11,9 +11,7 @@ from .sources import SourceError, load
 _SEPARATOR = "\n\n---\n\n"
 
 
-def build_context(
-    prompt: str | None, refs: list[str]
-) -> tuple[str, list[str]]:
+def build_context(prompt: str | None, refs: list[str]) -> tuple[str, list[str]]:
     """Build context and return (context_string, list_of_error_messages)."""
     parts: list[str] = []
     errors: list[str] = []
