@@ -1,0 +1,97 @@
+"""testsmith CLI entrypoint."""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+from typing import Optional
+
+import typer
+from rich.console import Console
+
+from .csv_writer import write_csv
+from .generator import generate_test_cases
+from .loaders import build_context
+from .providers import get_provider
+
+app = typer.Typer(add_completion=False, help="Generate QA test cases from text and documents.")
+console = Console()
+
+
+@app.command()
+def generate(
+    prompt: Optional[str] = typer.Option(
+        None, "--prompt", "-p", help="Plain text prompt / feature description."
+    ),
+    file: list[Path] = typer.Option(
+        [], "--file", "-f", exists=True, readable=True,
+        help="Local file (PDF, DOCX, MD, TXT). Repeatable.",
+    ),
+    out: Path = typer.Option(
+        Path("test_cases.csv"), "--out", "-o", help="Output CSV path."
+    ),
+    provider: Optional[str] = typer.Option(
+        None, "--provider",
+        help="LLM provider: 'anthropic' or 'gemini'. Auto-detected from env if omitted.",
+    ),
+    system_prompt: Optional[str] = typer.Option(
+        None, "--system", "-s",
+        help="Custom system prompt. Inline text or @path/to/file.txt. Replaces the default.",
+    ),
+    append_system: bool = typer.Option(
+        False, "--append-system",
+        help="Append --system to the default system prompt instead of replacing it.",
+    ),
+    user_template: Optional[str] = typer.Option(
+        None, "--user-template", "-u",
+        help="Custom user prompt template. Inline text or @path/to/file.txt. Use {context} as a placeholder.",
+    ),
+):
+    """Generate test cases and write them to a CSV file."""
+    system_prompt = _resolve_text_arg(system_prompt)
+    user_template = _resolve_text_arg(user_template)
+
+    if not prompt and not file and sys.stdin.isatty() is False:
+        prompt = sys.stdin.read().strip() or None
+
+    if not prompt and not file:
+        console.print("[red]Error:[/red] provide --prompt and/or --file (or pipe text via stdin).")
+        raise typer.Exit(code=2)
+
+    console.print(f"[cyan]Loading context[/cyan] ({len(file)} file(s))...")
+    context = build_context(prompt, list(file))
+    if not context.strip():
+        console.print("[red]Error:[/red] context is empty after loading.")
+        raise typer.Exit(code=2)
+
+    try:
+        llm = get_provider(provider)
+    except Exception as e:
+        console.print(f"[red]Provider error:[/red] {e}")
+        raise typer.Exit(code=2)
+
+    console.print(f"[cyan]Generating test cases via {llm.name}...[/cyan]")
+    try:
+        rows = generate_test_cases(
+            context,
+            provider=llm,
+            system_prompt=system_prompt,
+            user_template=user_template,
+            append_system=append_system,
+        )
+    except Exception as e:
+        console.print(f"[red]Generation failed:[/red] {e}")
+        raise typer.Exit(code=1)
+
+    count = write_csv(rows, out)
+    console.print(f"[green]Wrote {count} test case(s) to[/green] {out}")
+
+
+def _resolve_text_arg(value: Optional[str]) -> Optional[str]:
+    """Allow '@path/to/file' to load text from a file."""
+    if value and value.startswith("@"):
+        return Path(value[1:]).expanduser().read_text(encoding="utf-8")
+    return value
+
+
+if __name__ == "__main__":
+    app()
