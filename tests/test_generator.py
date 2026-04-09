@@ -1,4 +1,5 @@
 """Tests for the generator module — prompt building and response parsing."""
+
 from __future__ import annotations
 
 import json
@@ -47,22 +48,26 @@ class TestBuildUserPrompt:
 
 class TestParseResponse:
     def test_object_form(self):
-        response = json.dumps({
-            "suggested_filename": "login-auth",
-            "test_cases": [
-                {"ID": "TC-001", "Title": "Test login"},
-            ],
-        })
+        response = json.dumps(
+            {
+                "suggested_filename": "login-auth",
+                "test_cases": [
+                    {"ID": "TC-001", "Title": "Test login"},
+                ],
+            }
+        )
         rows, name = _parse_response(response)
         assert len(rows) == 1
         assert rows[0]["ID"] == "TC-001"
         assert name == "login-auth"
 
     def test_object_form_empty_filename(self):
-        response = json.dumps({
-            "suggested_filename": "",
-            "test_cases": [{"ID": "TC-001", "Title": "T"}],
-        })
+        response = json.dumps(
+            {
+                "suggested_filename": "",
+                "test_cases": [{"ID": "TC-001", "Title": "T"}],
+            }
+        )
         rows, name = _parse_response(response)
         assert len(rows) == 1
         assert name is None

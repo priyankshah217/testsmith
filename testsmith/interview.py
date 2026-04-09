@@ -1,4 +1,5 @@
 """Adaptive interview: LLM asks clarifying questions one at a time, only when needed."""
+
 from __future__ import annotations
 
 import json
@@ -60,14 +61,20 @@ def run_interview(
                 raise ValueError("empty response from model")
             decision = _parse_decision(raw)
         except Exception as e:
-            console.print(f"[yellow]Clarification check failed ({e}); proceeding.[/yellow]")
+            console.print(
+                f"[yellow]Clarification check failed ({e}); proceeding.[/yellow]"
+            )
             break
 
         if not decision.get("need_clarification"):
             if turn == 1:
-                console.print("[green]Context looks clear — no questions needed.[/green]")
+                console.print(
+                    "[green]Context looks clear — no questions needed.[/green]"
+                )
             else:
-                console.print("[green]Enough context gathered — generating now.[/green]")
+                console.print(
+                    "[green]Enough context gathered — generating now.[/green]"
+                )
             break
 
         question = (decision.get("question") or "").strip()
@@ -76,9 +83,13 @@ def run_interview(
         asked.add(question)
 
         try:
-            ans = Prompt.ask(f"[green]?[/green] {question}", default="", show_default=False)
+            ans = Prompt.ask(
+                f"[green]?[/green] {question}", default="", show_default=False
+            )
         except (EOFError, KeyboardInterrupt):
-            console.print("\n[yellow]Interview aborted — generating with current answers.[/yellow]")
+            console.print(
+                "\n[yellow]Interview aborted — generating with current answers.[/yellow]"
+            )
             break
 
         ans = ans.strip()
@@ -90,7 +101,9 @@ def run_interview(
             continue
         answers.append((question, ans))
     else:
-        console.print(f"[yellow]Reached max {max_turns} questions — proceeding.[/yellow]")
+        console.print(
+            f"[yellow]Reached max {max_turns} questions — proceeding.[/yellow]"
+        )
 
     return _build_context_with_answers(context, answers)
 

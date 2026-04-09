@@ -1,4 +1,5 @@
 """testsmith CLI entrypoint."""
+
 from __future__ import annotations
 
 import re
@@ -15,7 +16,9 @@ from .interview import run_interview
 from .loaders import build_context
 from .providers import get_provider
 
-app = typer.Typer(add_completion=False, help="Generate QA test cases from text and documents.")
+app = typer.Typer(
+    add_completion=False, help="Generate QA test cases from text and documents."
+)
 console = Console()
 
 
@@ -25,31 +28,43 @@ def generate(
         None, "--prompt", "-p", help="Plain text prompt / feature description."
     ),
     file: list[str] = typer.Option(
-        [], "--file", "-f",
+        [],
+        "--file",
+        "-f",
         help="Input source: local file (PDF/DOCX/MD/TXT) or URL. Repeatable.",
     ),
     out: Optional[Path] = typer.Option(
-        None, "--out", "-o",
+        None,
+        "--out",
+        "-o",
         help="Output CSV path. If omitted, a name is suggested by the LLM.",
     ),
     provider: Optional[str] = typer.Option(
-        None, "--provider",
+        None,
+        "--provider",
         help="LLM provider: 'anthropic' or 'gemini'. Auto-detected from env if omitted.",
     ),
     system_prompt: Optional[str] = typer.Option(
-        None, "--system", "-s",
+        None,
+        "--system",
+        "-s",
         help="Custom system prompt. Inline text or @path/to/file.txt. Replaces the default.",
     ),
     append_system: bool = typer.Option(
-        False, "--append-system",
+        False,
+        "--append-system",
         help="Append --system to the default system prompt instead of replacing it.",
     ),
     user_template: Optional[str] = typer.Option(
-        None, "--user-template", "-u",
+        None,
+        "--user-template",
+        "-u",
         help="Custom user prompt template. Inline text or @path/to/file.txt. Use {context} as a placeholder.",
     ),
     interactive: bool = typer.Option(
-        False, "--interactive", "-i",
+        False,
+        "--interactive",
+        "-i",
         help="Let the LLM ask clarifying questions before generating test cases.",
     ),
 ):
@@ -61,7 +76,9 @@ def generate(
         prompt = sys.stdin.read().strip() or None
 
     if not prompt and not file:
-        console.print("[red]Error:[/red] provide --prompt and/or --file (or pipe text via stdin).")
+        console.print(
+            "[red]Error:[/red] provide --prompt and/or --file (or pipe text via stdin)."
+        )
         raise typer.Exit(code=2)
 
     console.print(f"[cyan]Loading context[/cyan] ({len(file)} source(s))...")
@@ -78,7 +95,9 @@ def generate(
 
     if interactive:
         if not sys.stdin.isatty():
-            console.print("[yellow]Stdin is piped — skipping interactive mode.[/yellow]")
+            console.print(
+                "[yellow]Stdin is piped — skipping interactive mode.[/yellow]"
+            )
         else:
             context = run_interview(context, provider=llm, console=console)
 
