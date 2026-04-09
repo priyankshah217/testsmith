@@ -31,6 +31,12 @@ dependencies = [
     "rich>=13.0.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/priyankshah217/testsmith"
 Repository = "https://github.com/priyankshah217/testsmith"
