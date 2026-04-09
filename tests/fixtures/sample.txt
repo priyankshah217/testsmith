@@ -1,0 +1,3 @@
+Login screen with email and password fields.
+Forgot password link redirects to reset flow.
+Social login via Google and GitHub.
