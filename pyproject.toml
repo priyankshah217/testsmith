@@ -1,8 +1,27 @@
 [project]
 name = "testsmith"
 version = "0.1.0"
-description = "Forge QA test cases from text and documents using LLMs"
+description = "Forge QA test cases from text, documents, Confluence pages, and Figma designs using LLMs"
+readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.11"
+authors = [
+    { name = "Priyank Shah", email = "priyank.shah217@gmail.com" },
+]
+keywords = ["qa", "testing", "test-cases", "llm", "anthropic", "gemini", "confluence", "figma", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Testing",
+]
 dependencies = [
     "anthropic>=0.40.0",
     "google-genai>=0.3.0",
@@ -11,6 +30,12 @@ dependencies = [
     "python-docx>=1.1.0",
     "rich>=13.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/priyankshah217/testsmith"
+Repository = "https://github.com/priyankshah217/testsmith"
+Issues = "https://github.com/priyankshah217/testsmith/issues"
+Changelog = "https://github.com/priyankshah217/testsmith/blob/main/CHANGELOG.md"
 
 [project.scripts]
 testsmith = "testsmith.cli:app"
