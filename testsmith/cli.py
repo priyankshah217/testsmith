@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from dotenv import load_dotenv
 from rich.console import Console
 
 from .csv_writer import write_csv
@@ -15,6 +16,9 @@ from .generator import generate_test_cases
 from .interview import run_interview
 from .loaders import build_context
 from .providers import get_provider
+
+# Load .env from current directory (does not override existing env vars)
+load_dotenv()
 
 app = typer.Typer(
     add_completion=False, help="Generate QA test cases from text and documents."

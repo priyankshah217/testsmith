@@ -49,10 +49,12 @@ testsmith/
 - **Interview is adaptive, not batched.** The model decides per turn
   whether another clarifying question is needed; simple prompts get zero
   questions, dense specs get more (hard-capped at 5 turns).
-- **Errors from a source degrade gracefully.** `build_context` catches
-  `SourceError` and inserts an `[ERROR loading source: ...]` marker so a
-  single broken input doesn't abort the whole run. Think twice before
-  changing this — it's deliberate.
+- **Failed sources are excluded from context.** `build_context` catches
+  `SourceError`, excludes it from context, and returns errors separately.
+  The CLI shows warnings and aborts if ALL sources fail and no prompt
+  is provided. Partial failures proceed with available sources only.
+- **`.env` support.** `python-dotenv` loads `.env` from the current
+  directory at startup. Env vars always override `.env` values.
 
 ## Adding a new source
 
@@ -93,6 +95,9 @@ testsmith -p "Login screen with email + password and social auth"
 | `TESTSMITH_PROVIDER` | Force provider (`anthropic` or `gemini`) |
 | `CONFLUENCE_BASE_URL` / `CONFLUENCE_EMAIL` / `CONFLUENCE_API_TOKEN` | Confluence source |
 | `FIGMA_API_TOKEN` | Figma source |
+
+All variables can be set in a `.env` file in the working directory
+(loaded via `python-dotenv`). Env vars always take priority over `.env`.
 
 ## Things to preserve
 

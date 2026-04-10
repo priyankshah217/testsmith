@@ -15,6 +15,16 @@ Forge QA test cases from text, documents, Confluence pages, and Figma designs us
   - `ANTHROPIC_API_KEY` for Anthropic Claude
   - `GOOGLE_API_KEY` (or `GEMINI_API_KEY`) for Google Gemini
 
+## Configuration
+
+testsmith reads configuration from environment variables and/or a `.env` file in the current directory. Environment variables always take priority.
+
+```bash
+cp .env.example .env   # then edit .env with your values
+```
+
+See [`.env.example`](.env.example) for all available settings.
+
 ## Installation
 
 ### Via pipx (recommended)
@@ -27,13 +37,13 @@ Forge QA test cases from text, documents, Confluence pages, and Figma designs us
 # Linux:   python3 -m pip install --user pipx
 # Windows: python -m pip install --user pipx
 
-pipx install git+https://github.com/priyankshah217/testsmith.git
+pipx install testsmith-ai
 ```
 
 To upgrade later:
 
 ```bash
-pipx upgrade testsmith
+pipx upgrade testsmith-ai
 ```
 
 ### Via pip (in a virtualenv)
@@ -45,7 +55,7 @@ python3 -m venv .venv && source .venv/bin/activate
 # Windows
 python -m venv .venv && .venv\Scripts\activate
 
-pip install git+https://github.com/priyankshah217/testsmith.git
+pip install testsmith-ai
 ```
 
 ### From source (for development)
@@ -85,6 +95,9 @@ You must provide at least one of `--prompt`, `--file`, or piped stdin.
 | `-t`, `--temperature FLOAT` | Sampling temperature (0.0–2.0). Lower = more deterministic. |
 | `--top-p FLOAT` | Nucleus sampling top-p (0.0–1.0). |
 | `--format TEXT` | Test step format: `steps` (default, numbered) or `bdd` (Given/When/Then, business-focused). |
+| `--trace` | Add source traceability columns (document, section, quote, derivation) to CSV output. |
+| `--max-tokens INT` | Maximum output tokens for LLM response (default 16384). Increase for large prompts or thinking models. |
+| `--debug` | Dump raw LLM response to `debug_response.txt` for troubleshooting parse failures. |
 | `-s`, `--system TEXT` | Custom system prompt. Inline text or `@path/to/file.txt`. Replaces the default. |
 | `--append-system` | Append `--system` to the default system prompt instead of replacing it. |
 | `-u`, `--user-template TEXT` | Custom user prompt template. Inline text or `@path/to/file.txt`. Use `{context}` as a placeholder. |
@@ -105,20 +118,20 @@ Adding new sources (Notion, Jira, Linear, ...) is a single file in `testsmith/so
 
 ### Confluence setup
 
-Set these environment variables to fetch Confluence pages:
+Set these in your `.env` file or as environment variables:
 
 ```bash
-export CONFLUENCE_BASE_URL=https://<your-site>.atlassian.net
-export CONFLUENCE_EMAIL=you@example.com
-export CONFLUENCE_API_TOKEN=<token from id.atlassian.com/manage-profile/security/api-tokens>
+CONFLUENCE_BASE_URL=https://your-site.atlassian.net
+CONFLUENCE_EMAIL=you@example.com
+CONFLUENCE_API_TOKEN=<token from id.atlassian.com/manage-profile/security/api-tokens>
 ```
 
 ### Figma setup
 
-Set a personal access token to fetch Figma designs:
+Set in your `.env` file or as an environment variable:
 
 ```bash
-export FIGMA_API_TOKEN=<token from figma.com/settings>
+FIGMA_API_TOKEN=<token from figma.com/settings>
 ```
 
 Figma support is **text-only** in v1: frame/component names become headings, text layers become body text, and component descriptions are preserved. Purely visual nodes (vectors, rectangles, etc.) are skipped. If the URL contains a `node-id`, only that subtree is fetched; otherwise the whole file is loaded. **Tip:** right-click a frame in Figma → Copy link to get a URL with the right `node-id`.
@@ -211,14 +224,17 @@ testsmith -p "Password reset flow" -o reset.csv
 Test cases are written to a CSV with columns:
 `ID, Title, Preconditions, Steps, Expected Result, Priority, Type`
 
+When `--trace` is enabled, additional source traceability columns are appended:
+`source.document, source.section, source.quote, source.derivation`
+
 By default the filename is suggested by the LLM based on the feature context; pass `-o` to override.
 
 ### Step formats
 
 | `--format` | Steps column example |
 | --- | --- |
-| `steps` (default) | `1. Open app \| 2. Enter credentials \| 3. Submit form` |
-| `bdd` | `Given user has an active account \| When user provides valid credentials \| Then user is authenticated` |
+| `steps` (default) | `1. Open app` (each step on its own line) |
+| `bdd` | `Given user has an active account` / `When user provides valid credentials` / `Then user is authenticated` (each keyword on its own line) |
 
 BDD mode enforces **business-focused language** — steps describe domain intent and outcomes, not UI interactions (no "click", "tap", "navigate", etc.).
 

@@ -8,7 +8,7 @@ description: Use this skill when the user asks to generate, draft, or update QA 
 Testsmith is a CLI that generates QA test cases (CSV) from plain text, document inputs, Confluence pages, and Figma designs using an LLM (Anthropic or Gemini, auto-detected from env).
 
 - **Repo:** https://github.com/priyankshah217/testsmith
-- **Install:** `pipx install git+https://github.com/priyankshah217/testsmith.git`
+- **Install:** `pipx install testsmith-ai`
 - **Providers:** auto-detects `ANTHROPIC_API_KEY` or `GEMINI_API_KEY`. Override with `--provider anthropic|gemini` or env var `TESTSMITH_PROVIDER`.
 
 ## CLI surface
@@ -28,6 +28,9 @@ testsmith [OPTIONS]
   -t, --temperature FLOAT    Sampling temperature (0.0–2.0)
       --top-p FLOAT          Nucleus sampling top-p (0.0–1.0)
       --format TEXT           Step format: steps (default) or bdd (Given/When/Then)
+      --trace                Add source traceability columns to CSV output
+      --max-tokens INT       Max output tokens (default 16384)
+      --debug                Dump raw LLM response for troubleshooting
   -s, --system TEXT          Custom system prompt. Inline or @path/to/file
       --append-system        Append --system to default instead of replacing
   -u, --user-template TEXT   Custom user prompt. Inline or @path. Use {context}
@@ -44,13 +47,14 @@ Inputs can be combined freely: `-p "..." -f spec.pdf -f https://acme.atlassian.n
 | Confluence page | `-f https://<site>.atlassian.net/wiki/spaces/<SPACE>/pages/<ID>/<slug>` |
 | Figma design | `-f "https://www.figma.com/design/<fileKey>/<name>?node-id=<id>"` (quote it!) |
 
-**Confluence env vars** (required before passing a Confluence URL):
+**Configuration** can be set via environment variables or a `.env` file in the working directory (env vars take priority):
+
 - `CONFLUENCE_BASE_URL` — e.g. `https://acme.atlassian.net`
 - `CONFLUENCE_EMAIL` — Atlassian account email
 - `CONFLUENCE_API_TOKEN` — from `id.atlassian.com/manage-profile/security/api-tokens`
-
-**Figma env var** (required before passing a Figma URL):
 - `FIGMA_API_TOKEN` — from `figma.com/settings`
+
+Copy `.env.example` to `.env` and fill in your values.
 
 Figma extraction is **text-only** in v1: frame/component names become headings, text layers become body text, component descriptions are preserved. Purely visual nodes are skipped. Prefer passing a URL with `node-id` (right-click a frame → Copy link) so testsmith fetches just that subtree instead of the whole file.
 
@@ -59,7 +63,8 @@ Figma extraction is **text-only** in v1: frame/component names become headings, 
 Columns: `ID, Title, Preconditions, Steps, Expected Result, Priority, Type`
 
 - `ID`: `TC-001`, `TC-002`, ...
-- `Steps`: numbered, separated by ` | ` (default) — or Given/When/Then with `--format bdd`
+- `Steps`: numbered, each on its own line (default) — or Given/When/Then with `--format bdd`
+- When `--trace` is used, additional columns: `source.document`, `source.section`, `source.quote`, `source.derivation`
 - `Priority`: `P0`–`P3`
 - `Type`: `Functional`, `Negative`, `Edge`, `UI`, `Integration`, `Performance`, `Security`, `Accessibility`
 
@@ -112,4 +117,5 @@ testsmith -p "Signup flow" -m claude-sonnet-4-6 -t 0.3
 
 - If both API keys are set, Anthropic wins by default. Pass `--provider gemini` to override.
 - Large PDFs can blow past the model's context window. If that happens, split the file or pre-summarize before passing it to testsmith.
-- If `testsmith` is not on PATH, install with `pipx install git+https://github.com/priyankshah217/testsmith.git` or run `pipx ensurepath`.
+- If `testsmith` is not on PATH, install with `pipx install testsmith-ai` or run `pipx ensurepath`.
+- testsmith loads `.env` from the current directory automatically. Env vars always override `.env` values.
