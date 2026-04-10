@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-04-10
+
+### Added
+- `.env` file support via `python-dotenv`. Place a `.env` in the working
+  directory; environment variables always take priority.
+- `.env.example` with all configurable variables.
+- `--debug` flag to dump raw LLM response and system prompt for
+  troubleshooting parse failures.
+
+### Fixed
+- User prompt templates with JSON examples (curly braces) no longer
+  crash with `KeyError`. Switched from `str.format()` to `str.replace()`.
+- JSON parse resilience: strip trailing commas, extract JSON from
+  prose-wrapped responses, better error messages with position context.
+- Updated README, CLAUDE.md, and SKILL.md for all v0.2.x features
+  including `--trace`, `--debug`, `--max-tokens`, and PyPI package name.
+
 ## [0.2.1] - 2026-04-09
 
 ### Fixed
