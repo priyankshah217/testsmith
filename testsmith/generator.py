@@ -64,11 +64,17 @@ Field guidance for each test case:
 _TRACE_GUIDANCE_TEXT = """
 IMPORTANT — Source traceability (required):
 Each test case MUST also include a "source" object with these keys:
-- "document": which source document or design file the test was derived from
-- "section": specific section, heading, rule ID, or component/screen name
+- "document": which source the test was derived from. Adapt to the input type:
+  • Confluence/web page → page title (e.g. "PRD — Checkout Flow")
+  • Local file → filename (e.g. "checkout-prd.pdf")
+  • Figma design → "Figma: <screen or component name>"
+  • Prompt-only input → "User Prompt"
+- "section": specific section, heading, rule ID, or component/screen name.
+  For prompt-only input, use a brief topic (e.g. "login requirements").
 - "quote": verbatim excerpt (≤ 50 words) from the source that justifies this test.
-  For design sources (e.g. Figma) where no text is quotable, describe the visual element
-  or interaction pattern instead (e.g. "Toggle switch for Delivery option in Deal Method section").
+  • For documents and prompts: quote the relevant text directly.
+  • For Figma designs: describe the visual element or interaction pattern
+    (e.g. "Toggle switch for Delivery option in Deal Method section").
 - "derivation": one sentence explaining how the test was derived (e.g. boundary test, negative case, happy path)"""
 
 
