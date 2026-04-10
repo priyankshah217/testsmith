@@ -17,7 +17,7 @@ CSV_COLUMNS = [
     "Type",
 ]
 
-_STEPS_GUIDANCE_DEFAULT = '- Steps: numbered steps, each on its own line (use "\\n" inside the JSON string). Example: "1. Open app\\n2. Click login\\n3. Enter credentials".'
+_STEPS_GUIDANCE_DEFAULT = '- Steps: numbered steps, each on its own line (use "\\n" inside the JSON string). Every step MUST specify the exact action — NEVER use "e.g.", "for example", "for instance", or "such as" to offer alternatives. Example: "1. Open the login page\\n2. Enter email and password\\n3. Tap the Sign In button".'
 
 _STEPS_GUIDANCE_BDD = """\
 - Steps: write in BDD format using Given / When / Then keywords, each on its own line (use "\\n" inside the JSON string).
@@ -54,10 +54,26 @@ Field guidance for each test case:
 - ID: "TC-001", "TC-002", ... sequential.
 - Title: short imperative summary.
 - Preconditions: setup/state required; use "None" if not applicable.
+  Name the specific item and state — NEVER use "e.g.", "for example", or "such as".
 {steps_guidance}
-- Expected Result: the observable outcome.
+- Expected Result: the observable outcome. MUST state exactly ONE deterministic outcome.
+  NEVER use hedging words: "likely", "may", "might", "possibly", "should", "probably",
+  "could", "such as", "e.g.", "for example", "as per the design", "matches the design",
+  "accurately describes", "correctly reflects".
 - Priority: one of P0, P1, P2, P3.
+  P0 = release blocker (core flows, validation gates, data integrity).
+  P1 = high impact with workaround. P2 = moderate. P3 = cosmetic.
 - Type: one of Functional, Negative, Edge, UI, Integration, Performance, Security, Accessibility.
+
+Quality rules:
+- Steps MUST NOT restate what Preconditions already establish.
+- Every test case MUST have a unique (Preconditions + Steps) pair.
+- If two or more controls are interdependent, test EVERY direction (A affects B AND B affects A).
+
+SELF-CHECK: before outputting, scan your JSON for these exact strings in Expected Result,
+Steps, and Preconditions: "e.g.", "for example", "such as", "likely", "may", "might",
+"should", "accurately describes", "correctly reflects", "as per the design".
+If ANY match is found, rewrite that field with a specific, deterministic value.
 {trace_guidance}"""
 
 
@@ -78,25 +94,27 @@ Each test case MUST also include a "source" object with these keys:
 - "derivation": one sentence explaining how the test was derived (e.g. boundary test, negative case, happy path)"""
 
 
-# Default contract for backward compatibility
-OUTPUT_CONTRACT = _build_output_contract("steps")
-
-DEFAULT_SYSTEM_PROMPT = f"""You are a senior QA engineer. Given product context (requirements, design docs,
-user prompts), produce a comprehensive set of test cases covering happy paths,
-edge cases, negative tests, and non-functional concerns where relevant.
-
-{OUTPUT_CONTRACT}
-"""
-
-
 def _build_default_system_prompt(fmt: str = "steps") -> str:
     contract = _build_output_contract(fmt)
     return (
         "You are a senior QA engineer. Given product context (requirements, design docs,\n"
-        "user prompts), produce a comprehensive set of test cases covering happy paths,\n"
-        "edge cases, negative tests, and non-functional concerns where relevant.\n\n"
+        "user prompts), produce a comprehensive set of test cases.\n\n"
+        "Coverage guidance:\n"
+        "- Every stated requirement, rule, or acceptance criterion MUST be covered by at least one test.\n"
+        "- Cover happy paths, edge cases, negative tests, and non-functional concerns.\n"
+        "- When user input fields are present, include at least one Negative test (empty, invalid, boundary).\n"
+        "- When toggles or stateful controls are present, include at least one Edge test for state interactions.\n"
+        "- When data persistence is involved, include at least one Integration test (save, reload, verify).\n"
+        "- When UI components are described, consider Accessibility tests (screen reader, keyboard nav).\n"
+        "- Generate ONLY from the provided context. Do NOT invent features or rules not in the context.\n\n"
         f"{contract}\n"
     )
+
+
+# Default contract for backward compatibility
+OUTPUT_CONTRACT = _build_output_contract("steps")
+
+DEFAULT_SYSTEM_PROMPT = _build_default_system_prompt("steps")
 
 
 DEFAULT_USER_TEMPLATE = (
