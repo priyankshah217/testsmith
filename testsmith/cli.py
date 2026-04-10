@@ -16,6 +16,7 @@ from .generator import generate_test_cases
 from .interview import run_interview
 from .loaders import build_context
 from .providers import get_provider
+from .quality import check_quality
 
 # Load .env from current directory (does not override existing env vars)
 load_dotenv()
@@ -173,6 +174,13 @@ def generate(
 
             traceback.print_exc()
         raise typer.Exit(code=1)
+
+    # Run generic quality checks on generated test cases
+    qr = check_quality(rows)
+    if not qr.clean:
+        console.print(f"[yellow]Quality warnings ({qr.count}):[/yellow]")
+        for line in qr.summary_lines():
+            console.print(f"[yellow]{line}[/yellow]")
 
     if out is None:
         out = _resolve_output_path(suggested)
