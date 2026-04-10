@@ -42,9 +42,7 @@ _EXEMPLIFICATION_PATTERNS: list[str] = [
 ]
 
 _HEDGING_RE = re.compile("|".join(_HEDGING_PATTERNS), re.IGNORECASE)
-_EXEMPLIFICATION_RE = re.compile(
-    "|".join(_EXEMPLIFICATION_PATTERNS), re.IGNORECASE
-)
+_EXEMPLIFICATION_RE = re.compile("|".join(_EXEMPLIFICATION_PATTERNS), re.IGNORECASE)
 
 
 @dataclass
@@ -75,7 +73,9 @@ class QualityReport:
         """Return human-readable warning lines for CLI output."""
         lines: list[str] = []
         for w in self.warnings:
-            lines.append(f"  {w.tc_id} [{w.field}]: {w.issue} (found: \"{w.matched_text}\")")
+            lines.append(
+                f'  {w.tc_id} [{w.field}]: {w.issue} (found: "{w.matched_text}")'
+            )
         return lines
 
 
@@ -114,9 +114,7 @@ def _check_hedging(tc_id: str, row: dict, report: QualityReport) -> None:
         )
 
 
-def _check_exemplification(
-    tc_id: str, row: dict, report: QualityReport
-) -> None:
+def _check_exemplification(tc_id: str, row: dict, report: QualityReport) -> None:
     """Flag 'e.g.' / 'for example' etc. in Steps and Preconditions."""
     for field_name in ("Steps", "Preconditions"):
         text = str(row.get(field_name, ""))

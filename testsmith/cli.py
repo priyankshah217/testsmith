@@ -178,9 +178,7 @@ def generate(
     # Run generic quality checks on generated test cases
     qr = check_quality(rows)
     if not qr.clean:
-        console.print(
-            f"[yellow]Quality warnings ({qr.count}):[/yellow]"
-        )
+        console.print(f"[yellow]Quality warnings ({qr.count}):[/yellow]")
         for line in qr.summary_lines():
             console.print(f"[yellow]{line}[/yellow]")
 

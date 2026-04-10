@@ -34,12 +34,16 @@ class TestHedgingLanguage:
         assert qr.warnings[0].matched_text == "may"
 
     def test_flags_likely(self):
-        qr = check_quality([_row(**{"Expected Result": "User is likely navigated away"})])
+        qr = check_quality(
+            [_row(**{"Expected Result": "User is likely navigated away"})]
+        )
         assert qr.count == 1
         assert qr.warnings[0].matched_text == "likely"
 
     def test_flags_might(self):
-        qr = check_quality([_row(**{"Expected Result": "The button might be disabled"})])
+        qr = check_quality(
+            [_row(**{"Expected Result": "The button might be disabled"})]
+        )
         assert qr.count == 1
         assert qr.warnings[0].matched_text == "might"
 
@@ -65,7 +69,13 @@ class TestHedgingLanguage:
 
     def test_flags_accurately_describes(self):
         qr = check_quality(
-            [_row(**{"Expected Result": "Bottom sheet accurately describes the feature"})]
+            [
+                _row(
+                    **{
+                        "Expected Result": "Bottom sheet accurately describes the feature"
+                    }
+                )
+            ]
         )
         assert qr.count == 1
         assert qr.warnings[0].matched_text == "accurately describes"
@@ -222,8 +232,16 @@ class TestDuplicateDetection:
 
     def test_flags_duplicates(self):
         rows = [
-            _row(ID="TC-001", Preconditions="User is on listing screen", Steps="Tap toggle"),
-            _row(ID="TC-002", Preconditions="User is on listing screen", Steps="Tap toggle"),
+            _row(
+                ID="TC-001",
+                Preconditions="User is on listing screen",
+                Steps="Tap toggle",
+            ),
+            _row(
+                ID="TC-002",
+                Preconditions="User is on listing screen",
+                Steps="Tap toggle",
+            ),
         ]
         qr = check_quality(rows)
         assert qr.count == 1
@@ -231,8 +249,16 @@ class TestDuplicateDetection:
 
     def test_no_false_positive_on_different_steps(self):
         rows = [
-            _row(ID="TC-001", Preconditions="User is on listing screen", Steps="Tap toggle A"),
-            _row(ID="TC-002", Preconditions="User is on listing screen", Steps="Tap toggle B"),
+            _row(
+                ID="TC-001",
+                Preconditions="User is on listing screen",
+                Steps="Tap toggle A",
+            ),
+            _row(
+                ID="TC-002",
+                Preconditions="User is on listing screen",
+                Steps="Tap toggle B",
+            ),
         ]
         qr = check_quality(rows)
         assert qr.clean
@@ -247,8 +273,12 @@ class TestDuplicateDetection:
 
     def test_case_insensitive(self):
         rows = [
-            _row(ID="TC-001", Preconditions="User is Logged In", Steps="Open Dashboard"),
-            _row(ID="TC-002", Preconditions="user is logged in", Steps="open dashboard"),
+            _row(
+                ID="TC-001", Preconditions="User is Logged In", Steps="Open Dashboard"
+            ),
+            _row(
+                ID="TC-002", Preconditions="user is logged in", Steps="open dashboard"
+            ),
         ]
         qr = check_quality(rows)
         assert qr.count == 1
@@ -273,9 +303,21 @@ class TestMultipleWarnings:
 
     def test_multiple_rows(self):
         rows = [
-            _row(ID="TC-001", Steps="Step A", **{"Expected Result": "User should see the page"}),
-            _row(ID="TC-002", Steps="Step B", **{"Expected Result": "The button might be hidden"}),
-            _row(ID="TC-003", Steps="Step C", **{"Expected Result": "Dashboard is displayed"}),
+            _row(
+                ID="TC-001",
+                Steps="Step A",
+                **{"Expected Result": "User should see the page"},
+            ),
+            _row(
+                ID="TC-002",
+                Steps="Step B",
+                **{"Expected Result": "The button might be hidden"},
+            ),
+            _row(
+                ID="TC-003",
+                Steps="Step C",
+                **{"Expected Result": "Dashboard is displayed"},
+            ),
         ]
         qr = check_quality(rows)
         assert qr.count == 2
