@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-12
+
+### Added
+- **OpenAI-compatible provider**: supports OpenAI, LiteLLM gateway, Azure
+  OpenAI, Ollama, vLLM, and any OpenAI-compatible API. Install with
+  `pip install testsmith-ai[openai]`. Configure via `OPENAI_API_KEY` and
+  optional `OPENAI_BASE_URL` for custom endpoints.
+- Auto-detection of provider from model name (gpt-*, o1-*, o3-*, o4-*).
+
 ## [0.3.2] - 2026-04-12
 
 ### Added

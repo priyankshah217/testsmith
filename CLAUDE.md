@@ -32,6 +32,7 @@ testsmith/
 │                    hedging language, exemplification, precondition/step overlap,
 │                    and duplicate test cases. Returns QualityReport.
 ├── providers.py     LLMProvider protocol + AnthropicProvider + GeminiProvider
+│                    + OpenAICompatibleProvider (LiteLLM gateway, Azure, Ollama, etc.)
 └── csv_writer.py    Writes rows to CSV with the canonical column schema
 ```
 
@@ -107,7 +108,9 @@ testsmith -p "Login screen with email + password and social auth"
 | --- | --- |
 | `ANTHROPIC_API_KEY` | Use Anthropic Claude (preferred if both set) |
 | `GOOGLE_API_KEY` / `GEMINI_API_KEY` | Use Google Gemini |
-| `TESTSMITH_PROVIDER` | Force provider (`anthropic` or `gemini`) |
+| `OPENAI_API_KEY` | Use OpenAI or any OpenAI-compatible API |
+| `OPENAI_BASE_URL` | Custom base URL for OpenAI-compatible APIs (LiteLLM gateway, Azure, Ollama) |
+| `TESTSMITH_PROVIDER` | Force provider (`anthropic`, `gemini`, or `openai`) |
 | `CONFLUENCE_BASE_URL` / `CONFLUENCE_EMAIL` / `CONFLUENCE_API_TOKEN` | Confluence source |
 | `FIGMA_API_TOKEN` | Figma source |
 
