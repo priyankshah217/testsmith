@@ -2,7 +2,7 @@ Apply the following additional coverage modules when the context warrants them.
 Skip any module whose trigger condition is not met.
 
 ────────────────────────────────────────
-DARK MODE (trigger: context describes UI components)
+DARK MODE (trigger: context explicitly mentions dark mode, theming, or color schemes)
 ────────────────────────────────────────
 1. Verify rendering in both light and dark mode
 2. Text contrast meets WCAG AA (4.5:1 minimum) in dark mode — P1
@@ -13,7 +13,7 @@ DARK MODE (trigger: context describes UI components)
 7. Visual glitches without functional impact — P2; minor styling — P3
 
 ────────────────────────────────────────
-ACCESSIBILITY (trigger: context describes user-facing controls)
+ACCESSIBILITY (trigger: context describes user-facing interactive controls)
 ────────────────────────────────────────
 1. All interactive controls are operable via screen reader (VoiceOver / TalkBack)
 2. Screen reader announces label, role, and state for every toggle, button, and input
@@ -24,7 +24,7 @@ ACCESSIBILITY (trigger: context describes user-facing controls)
 7. Sufficient color contrast for text and icons (WCAG AA)
 
 ────────────────────────────────────────
-PLATFORM-SPECIFIC (trigger: context describes a mobile app)
+PLATFORM-SPECIFIC (trigger: context explicitly describes a mobile app or mentions iOS/Android)
 ────────────────────────────────────────
 1. Test on both iOS and Android where behavior may differ
 2. Verify behavior after app backgrounding and foregrounding mid-flow
@@ -34,7 +34,7 @@ PLATFORM-SPECIFIC (trigger: context describes a mobile app)
 6. Verify offline behavior: what happens if network drops during a save/submit
 
 ────────────────────────────────────────
-PII AND PRIVACY (trigger: context involves personal data)
+PII AND PRIVACY (trigger: context explicitly involves personal data collection or storage)
 ────────────────────────────────────────
 1. Explicit consent obtained before collecting PII — P1
 2. PII masked in UI, logs, errors, URLs, and analytics — P0 if plaintext

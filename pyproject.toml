@@ -1,6 +1,6 @@
 [project]
 name = "testsmith-ai"
-version = "0.3.0"
+version = "0.3.1"
 description = "Forge QA test cases from text, documents, Confluence pages, and Figma designs using LLMs"
 readme = "README.md"
 license = { text = "MIT" }
