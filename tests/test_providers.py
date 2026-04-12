@@ -76,6 +76,15 @@ class TestProviderModelMismatch:
             get_provider()
 
 
+try:
+    import openai  # noqa: F401
+
+    _has_openai = True
+except ImportError:
+    _has_openai = False
+
+
+@pytest.mark.skipif(not _has_openai, reason="openai not installed")
 class TestOpenAIProvider:
     def test_openai_key_auto_detected(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setenv("OPENAI_API_KEY", "fake-key")
