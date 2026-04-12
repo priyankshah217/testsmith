@@ -7,11 +7,13 @@ import json
 import pytest
 
 from testsmith.generator import (
+    _build_judge_prompt,
+    _build_output_contract,
     _parse_response,
     build_system_prompt,
     build_user_prompt,
+    judge_and_fix,
     DEFAULT_SYSTEM_PROMPT,
-    _build_output_contract,
 )
 
 
@@ -130,3 +132,75 @@ class TestParseResponse:
         response = json.dumps({"suggested_filename": "f", "wrong_key": []})
         with pytest.raises(ValueError, match="test_cases"):
             _parse_response(response)
+
+
+class TestJudgeAndFix:
+    """Tests for the LLM-as-judge correction flow."""
+
+    def test_build_judge_prompt_contains_warnings(self):
+        rows = [{"ID": "TC-001", "Steps": "1. Select item (e.g., shoes)"}]
+        warnings = [
+            {
+                "tc_id": "TC-001",
+                "field": "Steps",
+                "issue": "non-specific language",
+                "matched_text": "e.g.",
+            }
+        ]
+        prompt = _build_judge_prompt(rows, warnings, "test-file")
+        assert "TC-001" in prompt
+        assert "non-specific language" in prompt
+        assert "e.g." in prompt
+        assert "test-file" in prompt
+
+    def test_judge_and_fix_returns_corrected_rows(self):
+        """Mock provider returns corrected JSON."""
+        corrected = {
+            "suggested_filename": "test-file",
+            "test_cases": [{"ID": "TC-001", "Steps": "1. Select running shoes"}],
+        }
+
+        class MockProvider:
+            name = "mock"
+            model = "mock-1"
+
+            def complete(self, system, user, max_tokens=8192):
+                return json.dumps(corrected)
+
+        rows = [{"ID": "TC-001", "Steps": "1. Select item (e.g., shoes)"}]
+        warnings = [
+            {
+                "tc_id": "TC-001",
+                "field": "Steps",
+                "issue": "non-specific language",
+                "matched_text": "e.g.",
+            }
+        ]
+        result_rows, name = judge_and_fix(rows, "test-file", warnings, MockProvider())
+        assert result_rows[0]["Steps"] == "1. Select running shoes"
+        assert name == "test-file"
+
+    def test_judge_and_fix_handles_parse_error(self):
+        """If judge returns invalid JSON, raise ValueError."""
+
+        class BadProvider:
+            name = "mock"
+            model = "mock-1"
+
+            def complete(self, system, user, max_tokens=8192):
+                return "not json"
+
+        with pytest.raises(ValueError):
+            judge_and_fix(
+                [{"ID": "TC-001"}],
+                "test-file",
+                [
+                    {
+                        "tc_id": "TC-001",
+                        "field": "Steps",
+                        "issue": "x",
+                        "matched_text": "y",
+                    }
+                ],
+                BadProvider(),
+            )

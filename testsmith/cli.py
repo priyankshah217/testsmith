@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from rich.console import Console
 
 from .csv_writer import write_csv
-from .generator import generate_test_cases
+from .generator import generate_test_cases, judge_and_fix
 from .interview import run_interview
 from .loaders import build_context
 from .providers import get_provider
@@ -178,9 +178,42 @@ def generate(
     # Run generic quality checks on generated test cases
     qr = check_quality(rows)
     if not qr.clean:
-        console.print(f"[yellow]Quality warnings ({qr.count}):[/yellow]")
-        for line in qr.summary_lines():
-            console.print(f"[yellow]{line}[/yellow]")
+        console.print(
+            f"[yellow]Quality warnings ({qr.count}) — sending to LLM judge for correction...[/yellow]"
+        )
+        try:
+            warning_dicts = [
+                {
+                    "tc_id": w.tc_id,
+                    "field": w.field,
+                    "issue": w.issue,
+                    "matched_text": w.matched_text,
+                }
+                for w in qr.warnings
+            ]
+            rows, suggested = judge_and_fix(
+                rows,
+                suggested_filename=suggested,
+                warnings=warning_dicts,
+                provider=llm,
+                max_tokens=max_tokens,
+                debug=debug,
+            )
+            # Re-check after judge pass
+            qr2 = check_quality(rows)
+            if qr2.clean:
+                console.print("[green]Judge fixed all warnings.[/green]")
+            else:
+                console.print(
+                    f"[yellow]Remaining warnings after judge ({qr2.count}):[/yellow]"
+                )
+                for line in qr2.summary_lines():
+                    console.print(f"[yellow]{line}[/yellow]")
+        except Exception as e:
+            console.print(
+                f"[yellow]Judge pass failed ({type(e).__name__}: {e}). "
+                f"Using original output.[/yellow]"
+            )
 
     if out is None:
         out = _resolve_output_path(suggested)
