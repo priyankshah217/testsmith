@@ -238,6 +238,16 @@ By default the filename is suggested by the LLM based on the feature context; pa
 
 BDD mode enforces **business-focused language** — steps describe domain intent and outcomes, not UI interactions (no "click", "tap", "navigate", etc.).
 
+### Quality enforcement
+
+testsmith automatically validates generated test cases and fixes issues:
+
+1. **Code-level check** — scans output for hedging language ("may", "likely", "e.g."), non-specific steps, precondition/step duplication, and duplicate test cases.
+2. **LLM-as-judge** — if warnings are found, the output is sent to a second LLM call with a QA Reviewer persona that rewrites only the flagged fields with specific, deterministic values.
+3. **Re-check** — the corrected output is validated again. Remaining warnings (if any) are displayed but do not block CSV output.
+
+This two-layer approach (regex + LLM judge) catches issues that prompt-level self-check instructions alone cannot enforce reliably across all providers.
+
 ## Claude Code skill
 
 Testsmith ships with a [Claude Code skill](https://docs.anthropic.com/en/docs/claude-code/skills) so Claude can run testsmith for you when you ask for test cases.

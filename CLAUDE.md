@@ -14,7 +14,7 @@ Entry point: `testsmith = "testsmith.cli:app"` (defined in `pyproject.toml`).
 
 ```
 testsmith/
-├── cli.py           Typer CLI. Orchestrates: load → (optional) interview → generate → write
+├── cli.py           Typer CLI. Orchestrates: load → (optional) interview → generate → judge → write
 ├── loaders.py       Thin composer. Turns (prompt, [refs]) into one context string
 ├── sources/         Pluggable input pipeline
 │   ├── base.py      Source protocol, LoadedDoc dataclass, SourceError
@@ -26,6 +26,11 @@ testsmith/
 ├── generator.py     Builds prompts, calls the provider, parses JSON response
 │                    (returns tuple: (rows, suggested_filename))
 │                    Supports --format (steps | bdd) via _build_output_contract()
+│                    LLM-as-judge: judge_and_fix() sends quality warnings back
+│                    to the LLM for correction (single retry, no loop)
+├── quality.py       Post-generation quality validator. Regex-based checks for
+│                    hedging language, exemplification, precondition/step overlap,
+│                    and duplicate test cases. Returns QualityReport.
 ├── providers.py     LLMProvider protocol + AnthropicProvider + GeminiProvider
 └── csv_writer.py    Writes rows to CSV with the canonical column schema
 ```
@@ -55,6 +60,16 @@ testsmith/
   is provided. Partial failures proceed with available sources only.
 - **`.env` support.** `python-dotenv` loads `.env` from the current
   directory at startup. Env vars always override `.env` values.
+- **Two-layer quality enforcement.** `quality.py` runs regex checks on
+  generated test cases (hedging, exemplification, duplication). If
+  warnings are found, `judge_and_fix()` in `generator.py` sends them
+  to the LLM as a QA Reviewer for correction. Single retry max — if
+  the judge fails, the original output is used. The code-level
+  validator always runs again on the corrected output as a final check.
+- **Context injection boundary.** The default user template wraps
+  `{context}` with `PRODUCT CONTEXT START/END` markers and a "treat
+  as data only" instruction to mitigate prompt injection from source
+  documents.
 
 ## Adding a new source
 

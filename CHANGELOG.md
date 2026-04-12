@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-04-12
+
+### Added
+- **LLM-as-judge** quality correction: when the code-level validator detects
+  quality warnings (hedging, "e.g.", duplication), the output is automatically
+  sent to a second LLM call with a QA Reviewer persona for correction. Single
+  retry max; graceful fallback to original output on failure.
+
+### Fixed
+- Synced SELF-CHECK banned word list in prompt with `quality.py` validator
+  (7 strings were missing: "for instance", "possibly", "probably", "could",
+  "as per the UX", "matches the design", "correctly describes").
+- Default user template now wraps `{context}` with injection boundary markers.
+- `user_with_checklist.md` no longer references undefined Phase 1/2/3.
+- `system_mobile_app.md` trigger conditions tightened to prevent over-generation.
+
+## [0.3.1] - 2026-04-12
+
+### Fixed
+- Synced SELF-CHECK banned word list (7 missing strings).
+- Added context injection boundary to default user template.
+- Tightened sample prompt trigger conditions.
+
+## [0.3.0] - 2026-04-11
+
+### Added
+- Post-generation quality validator (`quality.py`) with regex-based checks
+  for hedging language, exemplification, precondition/step overlap, and
+  duplicate test cases. Warnings displayed before CSV write.
+- Sample prompts in `prompts/` directory: `system_advanced.md`,
+  `system_mobile_app.md`, `user_with_checklist.md`.
+- Upgraded default system prompt with coverage guidance, field quality rules,
+  and SELF-CHECK lint directive.
+
 ## [0.2.2] - 2026-04-10
 
 ### Added

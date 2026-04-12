@@ -222,3 +222,68 @@ def _parse_response(text: str) -> tuple[list[dict], str | None]:
         return data, None
 
     raise ValueError("Model did not return a JSON array or object")
+
+
+# ---------------------------------------------------------------------------
+# LLM-as-Judge: review and fix quality warnings
+# ---------------------------------------------------------------------------
+
+_JUDGE_SYSTEM = """\
+You are a senior QA reviewer. You receive generated test cases that have
+quality warnings detected by an automated checker.
+
+Your job:
+1. For each flagged field, evaluate whether the warning is valid.
+2. If valid, rewrite ONLY that field to fix the issue:
+   - Vague/hedging language → replace with a specific, deterministic assertion.
+   - "e.g." or "for example" → replace with one concrete value (no alternatives).
+   - Precondition restated in Steps → rewrite Steps to start after the precondition.
+3. Do NOT change unflagged fields, test IDs, priorities, types, or source objects.
+4. Do NOT add or remove test cases.
+
+Return the complete JSON object with the same structure:
+{"suggested_filename": "<keep original>", "test_cases": [...]}
+
+Return ONLY valid JSON — no prose, no markdown fences, no explanations."""
+
+
+def _build_judge_prompt(
+    rows: list[dict],
+    warnings: list[dict],
+    suggested_filename: str | None,
+) -> str:
+    """Build a prompt for the judge with the original output and warnings."""
+    original = json.dumps(
+        {"suggested_filename": suggested_filename or "", "test_cases": rows},
+        indent=2,
+    )
+    warning_lines = "\n".join(
+        f'- {w["tc_id"]} [{w["field"]}]: {w["issue"]} (found: "{w["matched_text"]}")'
+        for w in warnings
+    )
+    return (
+        f"Here are the generated test cases:\n\n{original}\n\n"
+        f"Quality warnings:\n{warning_lines}\n\n"
+        "Fix each flagged field. Return the full corrected JSON object."
+    )
+
+
+def judge_and_fix(
+    rows: list[dict],
+    suggested_filename: str | None,
+    warnings: list[dict],
+    provider: LLMProvider,
+    max_tokens: int = 16384,
+    debug: bool = False,
+) -> tuple[list[dict], str | None]:
+    """Send quality warnings to an LLM judge for correction.
+
+    Returns the corrected (rows, suggested_filename) tuple.
+    """
+    user = _build_judge_prompt(rows, warnings, suggested_filename)
+    text = provider.complete(system=_JUDGE_SYSTEM, user=user, max_tokens=max_tokens)
+    if debug:
+        from pathlib import Path
+
+        Path("debug_judge_response.txt").write_text(text or "", encoding="utf-8")
+    return _parse_response(text)
