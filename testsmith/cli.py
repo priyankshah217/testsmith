@@ -47,7 +47,7 @@ def generate(
     provider: Optional[str] = typer.Option(
         None,
         "--provider",
-        help="LLM provider: 'anthropic' or 'gemini'. Auto-detected from env if omitted.",
+        help="LLM provider: 'anthropic', 'gemini', or 'openai'. Auto-detected from env if omitted.",
     ),
     model: Optional[str] = typer.Option(
         None,

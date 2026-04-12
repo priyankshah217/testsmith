@@ -14,6 +14,7 @@ Forge QA test cases from text, documents, Confluence pages, and Figma designs us
 - An API key for one of the supported providers:
   - `ANTHROPIC_API_KEY` for Anthropic Claude
   - `GOOGLE_API_KEY` (or `GEMINI_API_KEY`) for Google Gemini
+  - `OPENAI_API_KEY` for OpenAI or any OpenAI-compatible API (requires `pip install testsmith-ai[openai]`)
 
 ## Configuration
 
@@ -90,7 +91,7 @@ You must provide at least one of `--prompt`, `--file`, or piped stdin.
 | `-p`, `--prompt TEXT` | Plain text prompt / feature description. |
 | `-f`, `--file REF` | Input source: local file (PDF, DOCX, MD, TXT) **or** URL (e.g. Confluence page). Repeatable. |
 | `-o`, `--out PATH` | Output CSV path. If omitted, the LLM suggests a kebab-case filename based on the feature (e.g. `login-social-auth.csv`). Collisions get `_2`, `_3`, ... |
-| `--provider TEXT` | LLM provider: `anthropic` or `gemini`. Auto-detected from env if omitted. |
+| `--provider TEXT` | LLM provider: `anthropic`, `gemini`, or `openai`. Auto-detected from env if omitted. |
 | `-m`, `--model TEXT` | LLM model name (e.g. `claude-sonnet-4-6`, `gemini-2.5-flash`). Defaults per provider. |
 | `-t`, `--temperature FLOAT` | Sampling temperature (0.0–2.0). Lower = more deterministic. |
 | `--top-p FLOAT` | Nucleus sampling top-p (0.0–1.0). |
@@ -132,6 +133,28 @@ Set in your `.env` file or as an environment variable:
 
 ```bash
 FIGMA_API_TOKEN=<token from figma.com/settings>
+```
+
+### OpenAI / LiteLLM gateway setup
+
+First install the optional OpenAI dependency:
+
+```bash
+pip install testsmith-ai[openai]
+```
+
+Set in your `.env` file or as environment variables:
+
+```bash
+OPENAI_API_KEY=<your API key or gateway token>
+OPENAI_BASE_URL=https://your-litellm-gateway.internal/v1  # optional, for custom endpoints
+```
+
+This works with any OpenAI-compatible API: OpenAI, LiteLLM gateway, Azure OpenAI, Ollama, vLLM, etc. Use `--model` to specify the model name your gateway exposes:
+
+```bash
+testsmith --provider openai --model gpt-4o -p "Login flow"
+testsmith --provider openai --model company/internal-llm -p "Login flow"  # custom gateway model
 ```
 
 Figma support is **text-only** in v1: frame/component names become headings, text layers become body text, and component descriptions are preserved. Purely visual nodes (vectors, rectangles, etc.) are skipped. If the URL contains a `node-id`, only that subtree is fetched; otherwise the whole file is loaded. **Tip:** right-click a frame in Figma → Copy link to get a URL with the right `node-id`.

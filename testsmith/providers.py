@@ -1,4 +1,4 @@
-"""LLM provider abstraction. Supports Anthropic Claude and Google Gemini."""
+"""LLM provider abstraction. Supports Anthropic Claude, Google Gemini, and OpenAI-compatible APIs."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from typing import Protocol
 DEFAULT_MODELS = {
     "anthropic": "claude-sonnet-4-6",
     "gemini": "gemini-2.5-pro",
+    "openai": "gpt-4o",
 }
 
 
@@ -87,6 +88,46 @@ class GeminiProvider:
         return resp.text or ""
 
 
+class OpenAICompatibleProvider:
+    """Works with any OpenAI-compatible API: OpenAI, LiteLLM gateway, Azure, Ollama, vLLM, etc."""
+
+    name = "openai"
+
+    def __init__(
+        self,
+        api_key: str,
+        model: str | None = None,
+        temperature: float | None = None,
+        top_p: float | None = None,
+        base_url: str | None = None,
+    ):
+        from openai import OpenAI
+
+        kwargs: dict = {"api_key": api_key}
+        if base_url:
+            kwargs["base_url"] = base_url
+        self.client = OpenAI(**kwargs)
+        self.model = model or DEFAULT_MODELS["openai"]
+        self.temperature = temperature
+        self.top_p = top_p
+
+    def complete(self, system: str, user: str, max_tokens: int = 8192) -> str:
+        kwargs: dict = dict(
+            model=self.model,
+            max_tokens=max_tokens,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+        )
+        if self.temperature is not None:
+            kwargs["temperature"] = self.temperature
+        if self.top_p is not None:
+            kwargs["top_p"] = self.top_p
+        resp = self.client.chat.completions.create(**kwargs)
+        return resp.choices[0].message.content or ""
+
+
 def _infer_provider_from_model(model: str) -> str | None:
     """Infer provider name from a model string, or None if ambiguous."""
     m = model.lower()
@@ -94,6 +135,8 @@ def _infer_provider_from_model(model: str) -> str | None:
         return "anthropic"
     if m.startswith("gemini"):
         return "gemini"
+    if m.startswith(("gpt-", "o1-", "o3-", "o4-")):
+        return "openai"
     return None
 
 
@@ -113,6 +156,8 @@ def get_provider(
     """
     anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
     gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    openai_key = os.environ.get("OPENAI_API_KEY")
+    openai_base_url = os.environ.get("OPENAI_BASE_URL")
 
     model = model or os.environ.get("TESTSMITH_MODEL") or None
     temperature = (
@@ -147,16 +192,33 @@ def get_provider(
             gemini_key, model=model, temperature=temperature, top_p=top_p
         )
 
+    def _build_openai() -> OpenAICompatibleProvider:
+        if not openai_key:
+            raise RuntimeError("OPENAI_API_KEY is not set.")
+        return OpenAICompatibleProvider(
+            openai_key,
+            model=model,
+            temperature=temperature,
+            top_p=top_p,
+            base_url=openai_base_url,
+        )
+
     if choice == "anthropic":
         return _build_anthropic()
     if choice == "gemini":
         return _build_gemini()
+    if choice == "openai":
+        return _build_openai()
     if anthropic_key:
         return _build_anthropic()
     if gemini_key:
         return _build_gemini()
+    if openai_key:
+        return _build_openai()
 
-    raise RuntimeError("No LLM API key found. Set ANTHROPIC_API_KEY or GEMINI_API_KEY.")
+    raise RuntimeError(
+        "No LLM API key found. Set ANTHROPIC_API_KEY, GEMINI_API_KEY, or OPENAI_API_KEY."
+    )
 
 
 def _env_float(name: str) -> float | None:
